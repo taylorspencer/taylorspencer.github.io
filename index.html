@@ -7,20 +7,21 @@
   <meta name="theme-color" content="#0a0f0a">
   <title>Taylor Spencer — RobCo TERMLINK</title>
 
-  <!-- The one permitted external resource: VT323, the CRT-style terminal typeface. -->
+  <!-- The one permitted external resource. Share Tech Mono is the closest
+       Google Fonts match to Monofonto, the face the FO3/FNV terminals use. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- In-universe terminal chrome. Stays visible on every screen. -->
+  <!-- In-universe terminal chrome, centered like the in-game boot header. -->
   <header class="terminal-header">
-    <h1 class="header-line">ROBCO INDUSTRIES (TM) TERMLINK PROTOCOL</h1>
-    <p class="header-line dim">ESTABLISHED LINK: TAYLOR SPENCER — PERSONAL TERMINAL</p>
-    <p class="header-line">&gt;&gt; TERMINAL ACCESS GRANTED <span class="cursor" aria-hidden="true">█</span></p>
+    <h1 class="header-line">ROBCO INDUSTRIES UNIFIED OPERATING SYSTEM</h1>
+    <p class="header-line">COPYRIGHT 2075-2077 ROBCO INDUSTRIES</p>
+    <p class="header-line">-Taylor Spencer Terminal-</p>
   </header>
 
   <!-- Each <section> is one terminal "screen". script.js shows exactly one
@@ -28,7 +29,7 @@
   <main>
 
     <section id="main-menu" aria-labelledby="main-menu-heading">
-      <h2 id="main-menu-heading" class="screen-heading" tabindex="-1">Main menu</h2>
+      <h2 id="main-menu-heading" class="screen-heading" tabindex="-1">Main Menu</h2>
       <nav aria-label="Main menu">
         <ul class="menu">
           <li><button class="menu-item" data-target="whoami">Whoami</button></li>
@@ -40,61 +41,78 @@
 
     <section id="whoami" aria-labelledby="whoami-heading" hidden>
       <h2 id="whoami-heading" class="screen-heading" tabindex="-1">Whoami</h2>
-      <p>
-        Taylor Spencer. Austin, TX. I build things — Fallout 4 mods, Python
-        tools, and automations that solve real problems for real people.
-        Currently learning in public. This terminal is one of the things
-        I built.
-      </p>
-      <button class="menu-item menu-item--back" data-target="main-menu">Return to main menu</button>
+      <!-- Placeholder until the real bio is written. -->
+      <p>Accessing personnel record...</p>
+      <p>ERROR: Record not yet uploaded.</p>
+      <p class="dim">Entry pending — check back after the next maintenance cycle.</p>
+      <button class="menu-item menu-item--back" data-target="main-menu">Return to Main Menu</button>
     </section>
 
     <section id="projects" aria-labelledby="projects-heading" hidden>
       <h2 id="projects-heading" class="screen-heading" tabindex="-1">Projects</h2>
-      <p class="dim">&gt;&gt; DIR LISTING COMPLETE — 4 ENTRIES FOUND</p>
-      <ul class="file-list">
-        <li class="file-entry">
-          <p class="file-entry-head">
-            <span class="file-name">BOOT_SCOPE</span>
-            <span class="file-status file-status--active">STATUS: ACTIVE</span>
-          </p>
-          <p class="file-desc">
-            Python sourcing tool that scans online marketplaces for underpriced
-            vintage cowboy boots and scores listings.
-          </p>
-        </li>
-        <li class="file-entry">
-          <p class="file-entry-head">
-            <span class="file-name">FACE_IT</span>
-            <span class="file-status">STATUS: IN DEVELOPMENT</span>
-          </p>
-          <p class="file-desc">
-            Desktop tool that generates Fallout 4 / Starfield character-creator
-            presets from a photograph.
-          </p>
-        </li>
-        <li class="file-entry">
-          <p class="file-entry-head">
-            <span class="file-name">S.E.E.</span>
-            <span class="file-status">STATUS: SHELVED</span>
-          </p>
-          <p class="file-desc">
-            Fallout 4 companion mod that generates unique NPCs from free-form
-            text via the Pip-Boy.
-          </p>
-        </li>
-        <li class="file-entry">
-          <p class="file-entry-head">
-            <span class="file-name">TRANSCRIPT_PIPELINE</span>
-            <span class="file-status file-status--active">STATUS: ACTIVE</span>
-          </p>
-          <p class="file-desc">
-            Whisper-based pipeline transcribing Creation Kit tutorial videos
-            into searchable reference docs.
-          </p>
-        </li>
-      </ul>
-      <button class="menu-item menu-item--back" data-target="main-menu">Return to main menu</button>
+      <p class="dim">Directory rebuild in progress...</p>
+
+      <!-- Vault Boy in a hardhat working a jackhammer — hand-drawn inline SVG
+           so the page stays self-contained (no image requests). It inherits
+           the phosphor green through currentColor. -->
+      <figure class="construction">
+        <svg viewBox="0 0 220 260" aria-hidden="true" focusable="false"
+             xmlns="http://www.w3.org/2000/svg"
+             fill="none" stroke="currentColor" stroke-width="3"
+             stroke-linecap="round" stroke-linejoin="round">
+          <!-- ground -->
+          <path d="M 28 240 H 192" stroke-width="2" stroke-dasharray="2 7"/>
+
+          <!-- jackhammer: T-handle, motor housing, chisel, impact marks -->
+          <rect x="126" y="114" width="48" height="7" rx="3.5" style="fill: var(--color-bg)"/>
+          <rect x="140" y="121" width="20" height="50" rx="4" style="fill: var(--color-bg)"/>
+          <path d="M 145 134 H 155 M 145 142 H 155 M 145 150 H 155" stroke-width="2"/>
+          <path d="M 150 171 V 230" stroke-width="6"/>
+          <path d="M 150 230 V 238" stroke-width="3"/>
+          <path d="M 138 230 L 130 222 M 162 230 L 170 222" stroke-width="2"/>
+          <circle cx="127" cy="235" r="1.5" fill="currentColor" stroke="none"/>
+          <circle cx="173" cy="235" r="1.5" fill="currentColor" stroke="none"/>
+          <!-- vibration arcs -->
+          <path d="M 132 138 q -8 10 0 20 M 168 138 q 8 10 0 20" stroke-width="2"/>
+
+          <!-- legs and shoes, braced against the hammer -->
+          <path d="M 81 152 L 72 230" stroke-width="7"/>
+          <path d="M 97 152 L 104 230" stroke-width="7"/>
+          <ellipse cx="62" cy="234" rx="13" ry="6" style="fill: var(--color-bg)"/>
+          <ellipse cx="112" cy="234" rx="13" ry="6" style="fill: var(--color-bg)"/>
+
+          <!-- vault suit torso, collar, belt -->
+          <path d="M 67 112 Q 89 103 111 112 L 107 152 Q 89 159 71 152 Z" style="fill: var(--color-bg)"/>
+          <path d="M 83 107 L 89 116 L 95 107"/>
+          <path d="M 89 120 V 142" stroke-width="2"/>
+          <path d="M 71 148 H 107" stroke-width="2"/>
+          <rect x="85" y="144.5" width="8" height="7" style="fill: var(--color-bg)"/>
+
+          <!-- neck and head -->
+          <path d="M 84 98 V 106 M 94 98 V 106"/>
+          <ellipse cx="89" cy="72" rx="25" ry="26" style="fill: var(--color-bg)"/>
+
+          <!-- the trademark grin -->
+          <circle cx="80" cy="68" r="2.6" fill="currentColor" stroke="none"/>
+          <circle cx="98" cy="68" r="2.6" fill="currentColor" stroke="none"/>
+          <path d="M 74 82 Q 89 96 104 82"/>
+          <path d="M 64 70 q -5 4 0 9 M 114 70 q 5 4 0 9" stroke-width="2"/>
+
+          <!-- hardhat: dome, ridge, brim -->
+          <path d="M 63 56 Q 64 32 89 32 Q 114 32 115 56 Z" style="fill: var(--color-bg)"/>
+          <path d="M 80 33 Q 89 25 98 33"/>
+          <rect x="52" y="54" width="74" height="7" rx="3.5" style="fill: var(--color-bg)"/>
+
+          <!-- arms gripping the handle -->
+          <path d="M 70 118 Q 98 134 128 119" stroke-width="7"/>
+          <path d="M 108 114 Q 138 124 164 118" stroke-width="7"/>
+          <circle cx="131" cy="117" r="5" style="fill: var(--color-bg)"/>
+          <circle cx="165" cy="117" r="5" style="fill: var(--color-bg)"/>
+        </svg>
+        <figcaption>Under Construction</figcaption>
+      </figure>
+
+      <button class="menu-item menu-item--back" data-target="main-menu">Return to Main Menu</button>
     </section>
 
     <section id="contact" aria-labelledby="contact-heading" hidden>
@@ -104,14 +122,14 @@
            contact route arrives in Phase 5. -->
       <p>&gt;&gt; CONTACT UPLINK: OFFLINE</p>
       <p class="dim">&gt;&gt; MODULE PENDING — CHECK BACK SOON</p>
-      <button class="menu-item menu-item--back" data-target="main-menu">Return to main menu</button>
+      <button class="menu-item menu-item--back" data-target="main-menu">Return to Main Menu</button>
     </section>
 
-  </main>
+    <!-- The idle prompt that sits under whatever screen is showing,
+         exactly like the in-game terminal's resting cursor line. -->
+    <p class="prompt" aria-hidden="true">&gt;<span class="cursor">█</span></p>
 
-  <footer class="terminal-footer">
-    <p class="dim">ROBCO UNIFIED OPERATING SYSTEM // COPYRIGHT 2075-2077 ROBCO INDUSTRIES</p>
-  </footer>
+  </main>
 
   <script src="script.js"></script>
 </body>

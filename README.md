@@ -13,7 +13,8 @@ Fallout-series RobCo TERMLINK terminal. Live at
 | `script.js` | Navigation only: one section-switching function, one wire-up loop |
 
 No build tools, no frameworks, no external JS. The only external request is
-the Google Fonts load for VT323.
+the Google Fonts load for Share Tech Mono (the closest available match to
+Monofonto, the face the in-game FO3/FNV terminals use).
 
 ## Phase roadmap
 

@@ -1,8 +1,9 @@
 /* ============================================================
    RobCo TERMLINK — Phase 1 visual identity
-   Faithful to the Fallout 3 / FNV / FO4 in-game terminal:
-   phosphor green on near-black, one monospace face, inverted
-   rows for selection, subtle scanlines.
+   Faithful to the Fallout 3 / FNV in-game terminal: centered
+   OS header, phosphor green on near-black, "> " selection
+   list with inverted rows, underlined screen titles, subtle
+   scanlines.
    ============================================================ */
 
 /* ------------------------------------------------------------
@@ -14,15 +15,16 @@
   /* Colors */
   --color-bg: #0a0f0a;            /* near-black with a green cast — never pure #000 */
   --color-green: #1aff80;         /* primary phosphor green: standard text */
-  --color-green-dim: #12b35a;     /* secondary text: flavor lines, statuses, footer */
-  --color-green-bright: #8cffc0;  /* highlights: headings, project names */
+  --color-green-dim: #12b35a;     /* secondary text: flavor lines, footer notes */
+  --color-green-bright: #8cffc0;  /* highlights (reserved for later phases) */
   --color-scanline: rgba(4, 8, 4, 0.35); /* the dark stripe in the scanline overlay */
 
-  /* Typography */
-  --font-terminal: "VT323", monospace;
-  --font-size-body: 1.375rem;     /* 22px — VT323 runs visually small, so the base is generous */
-  --letter-spacing: 0.04em;
-  --line-height: 1.4;
+  /* Typography — Share Tech Mono stands in for Monofonto, the face the
+     in-game FO3/FNV terminals actually use (not on Google Fonts). */
+  --font-terminal: "Share Tech Mono", monospace;
+  --font-size-body: 1.25rem;      /* 20px */
+  --letter-spacing: 0.09em;       /* the in-game text is widely tracked */
+  --line-height: 1.6;
 
   /* Spacing */
   --space-xs: 0.25rem;
@@ -32,8 +34,9 @@
   --content-width: 52rem;         /* keeps line length readable on wide monitors */
   --tap-target: 44px;             /* minimum touch-target height for nav rows */
 
-  /* Timing */
+  /* Timing & effects */
   --blink-period: 1.1s;           /* full on/off cycle of the block cursor */
+  --phosphor-bleed: 1px;          /* tiny text-shadow that fattens strokes like a CRT */
 }
 
 /* ------------------------------------------------------------
@@ -71,28 +74,26 @@ body {
 }
 
 /* ------------------------------------------------------------
-   3. LAYOUT — header chrome, screens, footer
+   3. LAYOUT — header chrome and screens
    ------------------------------------------------------------ */
 
-/* Header, content, and footer share one centered column. */
+/* Header and content share one centered column. */
 .terminal-header,
-main,
-.terminal-footer {
+main {
   width: min(100%, var(--content-width));
   margin-inline: auto;
   padding-inline: var(--space-md);
 }
 
+/* The in-game boot header is centered, all one brightness. */
 .terminal-header {
   padding-top: var(--space-lg);
-  padding-bottom: var(--space-md);
-  border-bottom: 1px solid var(--color-green-dim);
-  text-transform: uppercase;
+  text-align: center;
 }
 
 /* The h1 is a chrome line, not a banner — same size as its neighbors. */
 .header-line {
-  margin: 0 0 var(--space-xs);
+  margin: 0;
   font-size: var(--font-size-body);
   font-weight: normal;
 }
@@ -102,18 +103,15 @@ main {
   padding-bottom: var(--space-lg);
 }
 
+/* Screen titles mimic the underlined entry header on in-game terminals
+   ("Logs, Scribe Bigsley") — mixed case, underlined to the text's width. */
 .screen-heading {
+  width: fit-content;
   margin: 0 0 var(--space-md);
+  padding-bottom: 2px;
   font-size: var(--font-size-body);
   font-weight: normal;
-  text-transform: uppercase;
-  color: var(--color-green-bright);
-}
-
-/* The "/ ''" alternative text keeps screen readers from announcing
-   decorative punctuation. */
-.screen-heading::before {
-  content: "> " / "";
+  border-bottom: 1px solid currentColor;
 }
 
 /* Headings receive focus after a screen swap (see script.js) purely as a
@@ -122,8 +120,9 @@ main {
   outline: none;
 }
 
-.terminal-footer {
-  padding-bottom: var(--space-lg);
+/* The resting "> █" cursor line under whatever screen is showing. */
+.prompt {
+  margin: var(--space-lg) 0 0;
 }
 
 /* ------------------------------------------------------------
@@ -152,16 +151,13 @@ main {
   letter-spacing: inherit;
   color: inherit;
   text-align: left;
-  text-transform: uppercase;
   cursor: pointer;
 }
 
+/* Every selectable entry gets the in-game "> " prefix. The "/ ''"
+   alternative text keeps screen readers from announcing it. */
 .menu-item::before {
-  content: "[ " / "";
-}
-
-.menu-item::after {
-  content: " ]" / "";
+  content: "> " / "";
 }
 
 /* Mouse hover and keyboard focus get the same inverted-row treatment,
@@ -181,53 +177,37 @@ main {
 }
 
 /* ------------------------------------------------------------
-   5. PROJECTS — terminal file listing
+   5. UNDER CONSTRUCTION — Vault Boy placeholder on Projects
    ------------------------------------------------------------ */
-.file-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: var(--space-md);
+.construction {
+  margin: var(--space-lg) 0;
+  text-align: center;
 }
 
-/* Name on the left, status on the right, like a DIR listing. */
-.file-entry-head {
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: var(--space-sm);
+.construction svg {
+  width: min(210px, 70%);
+  height: auto;
 }
 
-.file-name {
-  color: var(--color-green-bright);
-}
-
-.file-name::before {
-  content: "> " / "";
-}
-
-.file-status {
-  color: var(--color-green-dim);
-}
-
-.file-status--active {
-  color: var(--color-green);
-}
-
-.file-desc {
-  margin: var(--space-xs) 0 0;
-  padding-left: 1.25em; /* sits under the name, clear of the "> " prefix */
+.construction figcaption {
+  margin-top: var(--space-md);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
 }
 
 /* ------------------------------------------------------------
    6. EFFECTS LAYER
    Every CRT effect lives below this line, on dedicated
-   pseudo-elements or animation-only rules — never mixed into
+   pseudo-elements or standalone rules — never mixed into
    layout. Phase 3 adds glow/flicker/curvature here and can
    gate the heavy ones to desktop without touching layout CSS.
    ------------------------------------------------------------ */
+
+/* A whisper of phosphor bleed. Fattens the strokes toward the chunky
+   in-game look; the real glow arrives in Phase 3. */
+body {
+  text-shadow: 0 0 var(--phosphor-bleed) currentColor;
+}
 
 /* Scanlines: a fixed, click-transparent overlay of faint dark stripes.
    Opacity stays low — readability beats authenticity when they conflict. */
@@ -246,7 +226,7 @@ body::after {
   );
 }
 
-/* The blinking block cursor after the header line. steps(1) makes it
+/* The blinking block cursor on the prompt line. steps(1) makes it
    snap on/off like a real terminal instead of fading. */
 .cursor {
   display: inline-block;
@@ -271,12 +251,7 @@ body::after {
    ------------------------------------------------------------ */
 @media (max-width: 480px) {
   :root {
-    --font-size-body: 1.25rem; /* 20px — still comfortably above the 16px floor */
-  }
-
-  /* Let name and status stack instead of squeezing onto one line. */
-  .file-entry-head {
-    flex-direction: column;
-    gap: 0;
+    --font-size-body: 1.125rem; /* 18px — still above the 16px floor */
+    --letter-spacing: 0.06em;   /* slightly tighter so header lines fit */
   }
 }
