@@ -1,0 +1,282 @@
+/* ============================================================
+   RobCo TERMLINK — Phase 1 visual identity
+   Faithful to the Fallout 3 / FNV / FO4 in-game terminal:
+   phosphor green on near-black, one monospace face, inverted
+   rows for selection, subtle scanlines.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1. DESIGN TOKENS
+   Every color, spacing unit, and timing value lives here so
+   Phase 3 (CRT tuning) can change the look from one place.
+   ------------------------------------------------------------ */
+:root {
+  /* Colors */
+  --color-bg: #0a0f0a;            /* near-black with a green cast — never pure #000 */
+  --color-green: #1aff80;         /* primary phosphor green: standard text */
+  --color-green-dim: #12b35a;     /* secondary text: flavor lines, statuses, footer */
+  --color-green-bright: #8cffc0;  /* highlights: headings, project names */
+  --color-scanline: rgba(4, 8, 4, 0.35); /* the dark stripe in the scanline overlay */
+
+  /* Typography */
+  --font-terminal: "VT323", monospace;
+  --font-size-body: 1.375rem;     /* 22px — VT323 runs visually small, so the base is generous */
+  --letter-spacing: 0.04em;
+  --line-height: 1.4;
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 2rem;
+  --content-width: 52rem;         /* keeps line length readable on wide monitors */
+  --tap-target: 44px;             /* minimum touch-target height for nav rows */
+
+  /* Timing */
+  --blink-period: 1.1s;           /* full on/off cycle of the block cursor */
+}
+
+/* ------------------------------------------------------------
+   2. BASE
+   ------------------------------------------------------------ */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  color: var(--color-green);
+  font-family: var(--font-terminal);
+  font-size: var(--font-size-body);
+  letter-spacing: var(--letter-spacing);
+  line-height: var(--line-height);
+}
+
+/* Belt-and-suspenders: the `hidden` attribute does this natively, but a
+   display rule elsewhere on the same element would silently override it. */
+[hidden] {
+  display: none !important;
+}
+
+/* Even text selection stays in character: inverted green. */
+::selection {
+  background-color: var(--color-green);
+  color: var(--color-bg);
+}
+
+.dim {
+  color: var(--color-green-dim);
+}
+
+/* ------------------------------------------------------------
+   3. LAYOUT — header chrome, screens, footer
+   ------------------------------------------------------------ */
+
+/* Header, content, and footer share one centered column. */
+.terminal-header,
+main,
+.terminal-footer {
+  width: min(100%, var(--content-width));
+  margin-inline: auto;
+  padding-inline: var(--space-md);
+}
+
+.terminal-header {
+  padding-top: var(--space-lg);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--color-green-dim);
+  text-transform: uppercase;
+}
+
+/* The h1 is a chrome line, not a banner — same size as its neighbors. */
+.header-line {
+  margin: 0 0 var(--space-xs);
+  font-size: var(--font-size-body);
+  font-weight: normal;
+}
+
+main {
+  padding-top: var(--space-lg);
+  padding-bottom: var(--space-lg);
+}
+
+.screen-heading {
+  margin: 0 0 var(--space-md);
+  font-size: var(--font-size-body);
+  font-weight: normal;
+  text-transform: uppercase;
+  color: var(--color-green-bright);
+}
+
+/* The "/ ''" alternative text keeps screen readers from announcing
+   decorative punctuation. */
+.screen-heading::before {
+  content: "> " / "";
+}
+
+/* Headings receive focus after a screen swap (see script.js) purely as a
+   keyboard landing point — they aren't interactive, so no focus ring. */
+.screen-heading:focus {
+  outline: none;
+}
+
+.terminal-footer {
+  padding-bottom: var(--space-lg);
+}
+
+/* ------------------------------------------------------------
+   4. NAVIGATION — the terminal selection list
+   Selection inversion is the signature Phase 1 interaction:
+   the in-game terminal highlights the chosen row as a solid
+   green block with dark text.
+   ------------------------------------------------------------ */
+.menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.menu-item {
+  /* Strip the native button look; the row itself is the control. */
+  display: block;
+  width: 100%;
+  min-height: var(--tap-target);
+  padding: var(--space-xs) var(--space-sm);
+  background: none;
+  border: none;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.menu-item::before {
+  content: "[ " / "";
+}
+
+.menu-item::after {
+  content: " ]" / "";
+}
+
+/* Mouse hover and keyboard focus get the same inverted-row treatment,
+   so the inversion doubles as the visible focus indicator. */
+.menu-item:hover,
+.menu-item:focus-visible {
+  background-color: var(--color-green);
+  color: var(--color-bg);
+  /* Invisible normally, but Windows High Contrast / forced-colors mode
+     removes our background colors — this outline keeps focus visible there. */
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+}
+
+.menu-item--back {
+  margin-top: var(--space-lg);
+}
+
+/* ------------------------------------------------------------
+   5. PROJECTS — terminal file listing
+   ------------------------------------------------------------ */
+.file-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-md);
+}
+
+/* Name on the left, status on the right, like a DIR listing. */
+.file-entry-head {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.file-name {
+  color: var(--color-green-bright);
+}
+
+.file-name::before {
+  content: "> " / "";
+}
+
+.file-status {
+  color: var(--color-green-dim);
+}
+
+.file-status--active {
+  color: var(--color-green);
+}
+
+.file-desc {
+  margin: var(--space-xs) 0 0;
+  padding-left: 1.25em; /* sits under the name, clear of the "> " prefix */
+}
+
+/* ------------------------------------------------------------
+   6. EFFECTS LAYER
+   Every CRT effect lives below this line, on dedicated
+   pseudo-elements or animation-only rules — never mixed into
+   layout. Phase 3 adds glow/flicker/curvature here and can
+   gate the heavy ones to desktop without touching layout CSS.
+   ------------------------------------------------------------ */
+
+/* Scanlines: a fixed, click-transparent overlay of faint dark stripes.
+   Opacity stays low — readability beats authenticity when they conflict. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 2px,
+    var(--color-scanline) 2px,
+    var(--color-scanline) 3px
+  );
+}
+
+/* The blinking block cursor after the header line. steps(1) makes it
+   snap on/off like a real terminal instead of fading. */
+.cursor {
+  display: inline-block;
+  animation: cursor-blink var(--blink-period) steps(1) infinite;
+}
+
+@keyframes cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Visitors who opt out of motion get a solid, non-blinking cursor. */
+@media (prefers-reduced-motion: reduce) {
+  .cursor {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------
+   7. RESPONSIVE — single column down to ~375px
+   ------------------------------------------------------------ */
+@media (max-width: 480px) {
+  :root {
+    --font-size-body: 1.25rem; /* 20px — still comfortably above the 16px floor */
+  }
+
+  /* Let name and status stack instead of squeezing onto one line. */
+  .file-entry-head {
+    flex-direction: column;
+    gap: 0;
+  }
+}

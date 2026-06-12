@@ -1,9 +1,118 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Taylor Spencer</title>
-  </head>
-  <body>
-    <p>Terminal coming soon.</p>
-  </body>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Taylor Spencer — personal site styled as a RobCo terminal. Projects, about, and contact.">
+  <meta name="theme-color" content="#0a0f0a">
+  <title>Taylor Spencer — RobCo TERMLINK</title>
+
+  <!-- The one permitted external resource: VT323, the CRT-style terminal typeface. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- In-universe terminal chrome. Stays visible on every screen. -->
+  <header class="terminal-header">
+    <h1 class="header-line">ROBCO INDUSTRIES (TM) TERMLINK PROTOCOL</h1>
+    <p class="header-line dim">ESTABLISHED LINK: TAYLOR SPENCER — PERSONAL TERMINAL</p>
+    <p class="header-line">&gt;&gt; TERMINAL ACCESS GRANTED <span class="cursor" aria-hidden="true">█</span></p>
+  </header>
+
+  <!-- Each <section> is one terminal "screen". script.js shows exactly one
+       at a time; every screen except the main menu starts hidden. -->
+  <main>
+
+    <section id="main-menu" aria-labelledby="main-menu-heading">
+      <h2 id="main-menu-heading" class="screen-heading" tabindex="-1">Main menu</h2>
+      <nav aria-label="Main menu">
+        <ul class="menu">
+          <li><button class="menu-item" data-target="whoami">Whoami</button></li>
+          <li><button class="menu-item" data-target="projects">Projects</button></li>
+          <li><button class="menu-item" data-target="contact">Contact</button></li>
+        </ul>
+      </nav>
+    </section>
+
+    <section id="whoami" aria-labelledby="whoami-heading" hidden>
+      <h2 id="whoami-heading" class="screen-heading" tabindex="-1">Whoami</h2>
+      <p>
+        Taylor Spencer. Austin, TX. I build things — Fallout 4 mods, Python
+        tools, and automations that solve real problems for real people.
+        Currently learning in public. This terminal is one of the things
+        I built.
+      </p>
+      <button class="menu-item menu-item--back" data-target="main-menu">Return to main menu</button>
+    </section>
+
+    <section id="projects" aria-labelledby="projects-heading" hidden>
+      <h2 id="projects-heading" class="screen-heading" tabindex="-1">Projects</h2>
+      <p class="dim">&gt;&gt; DIR LISTING COMPLETE — 4 ENTRIES FOUND</p>
+      <ul class="file-list">
+        <li class="file-entry">
+          <p class="file-entry-head">
+            <span class="file-name">BOOT_SCOPE</span>
+            <span class="file-status file-status--active">STATUS: ACTIVE</span>
+          </p>
+          <p class="file-desc">
+            Python sourcing tool that scans online marketplaces for underpriced
+            vintage cowboy boots and scores listings.
+          </p>
+        </li>
+        <li class="file-entry">
+          <p class="file-entry-head">
+            <span class="file-name">FACE_IT</span>
+            <span class="file-status">STATUS: IN DEVELOPMENT</span>
+          </p>
+          <p class="file-desc">
+            Desktop tool that generates Fallout 4 / Starfield character-creator
+            presets from a photograph.
+          </p>
+        </li>
+        <li class="file-entry">
+          <p class="file-entry-head">
+            <span class="file-name">S.E.E.</span>
+            <span class="file-status">STATUS: SHELVED</span>
+          </p>
+          <p class="file-desc">
+            Fallout 4 companion mod that generates unique NPCs from free-form
+            text via the Pip-Boy.
+          </p>
+        </li>
+        <li class="file-entry">
+          <p class="file-entry-head">
+            <span class="file-name">TRANSCRIPT_PIPELINE</span>
+            <span class="file-status file-status--active">STATUS: ACTIVE</span>
+          </p>
+          <p class="file-desc">
+            Whisper-based pipeline transcribing Creation Kit tutorial videos
+            into searchable reference docs.
+          </p>
+        </li>
+      </ul>
+      <button class="menu-item menu-item--back" data-target="main-menu">Return to main menu</button>
+    </section>
+
+    <section id="contact" aria-labelledby="contact-heading" hidden>
+      <h2 id="contact-heading" class="screen-heading" tabindex="-1">Contact</h2>
+      <!-- Deliberately no email address here: this repo is public and plain-text
+           addresses on static sites get harvested by scraper bots. A real
+           contact route arrives in Phase 5. -->
+      <p>&gt;&gt; CONTACT UPLINK: OFFLINE</p>
+      <p class="dim">&gt;&gt; MODULE PENDING — CHECK BACK SOON</p>
+      <button class="menu-item menu-item--back" data-target="main-menu">Return to main menu</button>
+    </section>
+
+  </main>
+
+  <footer class="terminal-footer">
+    <p class="dim">ROBCO UNIFIED OPERATING SYSTEM // COPYRIGHT 2075-2077 ROBCO INDUSTRIES</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
 </html>
