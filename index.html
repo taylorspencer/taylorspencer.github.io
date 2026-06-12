@@ -54,60 +54,65 @@
 
       <!-- Vault Boy in a hardhat working a jackhammer — hand-drawn inline SVG
            so the page stays self-contained (no image requests). It inherits
-           the phosphor green through currentColor. -->
+           the phosphor green through currentColor; the cartoon's "skin" is
+           the terminal background so overlapping shapes occlude each other. -->
       <figure class="construction">
-        <svg viewBox="0 0 220 260" aria-hidden="true" focusable="false"
+        <svg viewBox="84 50 240 444" aria-hidden="true" focusable="false"
              xmlns="http://www.w3.org/2000/svg"
-             fill="none" stroke="currentColor" stroke-width="3"
+             fill="none" stroke="currentColor" stroke-width="4"
              stroke-linecap="round" stroke-linejoin="round">
           <!-- ground -->
-          <path d="M 28 240 H 192" stroke-width="2" stroke-dasharray="2 7"/>
+          <path d="M 104 490 H 304" stroke-width="2" stroke-dasharray="2 8"/>
 
-          <!-- jackhammer: T-handle, motor housing, chisel, impact marks -->
-          <rect x="126" y="114" width="48" height="7" rx="3.5" style="fill: var(--color-bg)"/>
-          <rect x="140" y="121" width="20" height="50" rx="4" style="fill: var(--color-bg)"/>
-          <path d="M 145 134 H 155 M 145 142 H 155 M 145 150 H 155" stroke-width="2"/>
-          <path d="M 150 171 V 230" stroke-width="6"/>
-          <path d="M 150 230 V 238" stroke-width="3"/>
-          <path d="M 138 230 L 130 222 M 162 230 L 170 222" stroke-width="2"/>
-          <circle cx="127" cy="235" r="1.5" fill="currentColor" stroke="none"/>
-          <circle cx="173" cy="235" r="1.5" fill="currentColor" stroke="none"/>
-          <!-- vibration arcs -->
-          <path d="M 132 138 q -8 10 0 20 M 168 138 q 8 10 0 20" stroke-width="2"/>
+          <!-- neck (behind the head and torso, only its sides show) -->
+          <rect x="191" y="244" width="26" height="24" fill="var(--color-bg)" stroke="none"/>
+          <path d="M 189 246 V 266 M 219 246 V 266"/>
 
-          <!-- legs and shoes, braced against the hammer -->
-          <path d="M 81 152 L 72 230" stroke-width="7"/>
-          <path d="M 97 152 L 104 230" stroke-width="7"/>
-          <ellipse cx="62" cy="234" rx="13" ry="6" style="fill: var(--color-bg)"/>
-          <ellipse cx="112" cy="234" rx="13" ry="6" style="fill: var(--color-bg)"/>
+          <!-- ear pokes out from behind the right side of the head -->
+          <path d="M 262 188 q 15 0 14 13 q -1 12 -14 10" style="fill: var(--color-bg)"/>
 
-          <!-- vault suit torso, collar, belt -->
-          <path d="M 67 112 Q 89 103 111 112 L 107 152 Q 89 159 71 152 Z" style="fill: var(--color-bg)"/>
-          <path d="M 83 107 L 89 116 L 95 107"/>
-          <path d="M 89 120 V 142" stroke-width="2"/>
-          <path d="M 71 148 H 107" stroke-width="2"/>
-          <rect x="85" y="144.5" width="8" height="7" style="fill: var(--color-bg)"/>
+          <!-- big egg-shaped head -->
+          <path d="M 142 180 C 142 150 164 138 204 138 C 244 138 266 150 266 180
+                   L 266 198 C 266 234 238 252 204 252 C 170 252 142 234 142 198 Z"
+                style="fill: var(--color-bg)"/>
 
-          <!-- neck and head -->
-          <path d="M 84 98 V 106 M 94 98 V 106"/>
-          <ellipse cx="89" cy="72" rx="25" ry="26" style="fill: var(--color-bg)"/>
+          <!-- the trademark hair swoosh, squashed out the sides of the hat -->
+          <path d="M 156 152 Q 128 146 133 172 Q 151 178 158 166 Z" style="fill: var(--color-bg)"/>
+          <path d="M 252 152 Q 280 146 275 172 Q 257 178 250 166 Z" style="fill: var(--color-bg)"/>
 
-          <!-- the trademark grin -->
-          <circle cx="80" cy="68" r="2.6" fill="currentColor" stroke="none"/>
-          <circle cx="98" cy="68" r="2.6" fill="currentColor" stroke="none"/>
-          <path d="M 74 82 Q 89 96 104 82"/>
-          <path d="M 64 70 q -5 4 0 9 M 114 70 q 5 4 0 9" stroke-width="2"/>
+          <!-- face: wink, open eye, nose, grin -->
+          <path d="M 172 180 q 8 7 16 0"/>
+          <circle cx="222" cy="177" r="6.5" fill="currentColor" stroke="none"/>
+          <path d="M 205 181 Q 203 193 194 195"/>
+          <path d="M 178 202 Q 180 224 202 224 Q 220 224 222 206"/>
 
-          <!-- hardhat: dome, ridge, brim -->
-          <path d="M 63 56 Q 64 32 89 32 Q 114 32 115 56 Z" style="fill: var(--color-bg)"/>
-          <path d="M 80 33 Q 89 25 98 33"/>
-          <rect x="52" y="54" width="74" height="7" rx="3.5" style="fill: var(--color-bg)"/>
+          <!-- hardhat: crest, dome, emblem, brim -->
+          <path d="M 190 80 V 68 Q 190 60 198 60 H 210 Q 218 60 218 68 V 80" style="fill: var(--color-bg)"/>
+          <path d="M 140 134 C 140 94 168 78 204 78 C 240 78 268 94 268 134 Z" style="fill: var(--color-bg)"/>
+          <circle cx="204" cy="104" r="7" stroke-width="3"/>
+          <rect x="116" y="132" width="176" height="14" rx="7" style="fill: var(--color-bg)"/>
 
-          <!-- arms gripping the handle -->
-          <path d="M 70 118 Q 98 134 128 119" stroke-width="7"/>
-          <path d="M 108 114 Q 138 124 164 118" stroke-width="7"/>
-          <circle cx="131" cy="117" r="5" style="fill: var(--color-bg)"/>
-          <circle cx="165" cy="117" r="5" style="fill: var(--color-bg)"/>
+          <!-- vault-suit torso, open at the bottom where the hammer sits -->
+          <path d="M 127 376 V 298 Q 127 262 163 262 H 245 Q 281 262 281 298 V 376"
+                style="fill: var(--color-bg)"/>
+          <path d="M 198 264 V 290 M 210 264 V 290"/>
+
+          <!-- arms reaching out and down to the handle -->
+          <path d="M 133 268 Q 103 268 103 293 V 318"/>
+          <path d="M 275 268 Q 305 268 305 293 V 318"/>
+
+          <!-- everything that shakes: handle, motor, bit, hands, debris -->
+          <g class="vb-jackhammer">
+            <rect x="92" y="320" width="224" height="16" rx="8" style="fill: var(--color-bg)"/>
+            <rect x="157" y="330" width="94" height="92" rx="6" style="fill: var(--color-bg)"/>
+            <path d="M 174 352 H 234 M 174 400 H 234"/>
+            <path d="M 187 422 V 430 Q 187 436 193 436 H 215 Q 221 436 221 430 V 422"
+                  style="fill: var(--color-bg)"/>
+            <rect x="198" y="436" width="12" height="44" rx="3" fill="currentColor" stroke="none"/>
+            <ellipse cx="120" cy="328" rx="13" ry="14" style="fill: var(--color-bg)"/>
+            <ellipse cx="288" cy="328" rx="13" ry="14" style="fill: var(--color-bg)"/>
+            <path d="M 174 477 L 188 470 M 220 470 L 234 477 M 200 482 H 208"/>
+          </g>
         </svg>
         <figcaption>Under Construction</figcaption>
       </figure>

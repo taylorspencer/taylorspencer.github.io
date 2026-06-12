@@ -239,9 +239,29 @@ body::after {
   }
 }
 
-/* Visitors who opt out of motion get a solid, non-blinking cursor. */
+/* The jackhammer group inside the Vault Boy drawing rattles a couple of
+   pixels in every direction — fast and linear so it reads as machine
+   vibration rather than a wobble. */
+.vb-jackhammer {
+  animation: jackhammer-shake 0.08s linear infinite;
+}
+
+@keyframes jackhammer-shake {
+  25% {
+    transform: translate(-1px, 1.5px);
+  }
+  50% {
+    transform: translate(1px, -1px);
+  }
+  75% {
+    transform: translate(-1px, -1.5px);
+  }
+}
+
+/* Visitors who opt out of motion get a solid cursor and a still hammer. */
 @media (prefers-reduced-motion: reduce) {
-  .cursor {
+  .cursor,
+  .vb-jackhammer {
     animation: none;
   }
 }
