@@ -29,7 +29,8 @@ the Google Fonts load for VT323.
 
 ## One-time manual setup
 
-In the repo settings on GitHub: **Settings → Pages → check "Enforce HTTPS"**.
+**Settings → Pages → "Enforce HTTPS"** — already enabled (verified 2026-06-12);
+leave it checked.
 
 ## House rules
 
