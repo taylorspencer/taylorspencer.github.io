@@ -52,68 +52,171 @@
       <h2 id="projects-heading" class="screen-heading" tabindex="-1">Projects</h2>
       <p class="dim">Directory rebuild in progress...</p>
 
-      <!-- Vault Boy in a hardhat working a jackhammer — hand-drawn inline SVG
-           so the page stays self-contained (no image requests). It inherits
-           the phosphor green through currentColor; the cartoon's "skin" is
-           the terminal background so overlapping shapes occlude each other. -->
+      <!-- Vault Boy in a hardhat with a jackhammer — drawn entirely in CSS
+           (no images), so it scales crisply and stays self-contained. The
+           shapes live in style.css section 8; this is just their skeleton.
+           aria-hidden because it is decorative — the caption carries the
+           meaning. -->
       <figure class="construction">
-        <svg viewBox="84 50 240 444" aria-hidden="true" focusable="false"
-             xmlns="http://www.w3.org/2000/svg"
-             fill="none" stroke="currentColor" stroke-width="4"
-             stroke-linecap="round" stroke-linejoin="round">
-          <!-- ground -->
-          <path d="M 104 490 H 304" stroke-width="2" stroke-dasharray="2 8"/>
+        <div class="vb-stage" aria-hidden="true">
+        <div class="vault-boy">
 
-          <!-- neck (behind the head and torso, only its sides show) -->
-          <rect x="191" y="244" width="26" height="24" fill="var(--color-bg)" stroke="none"/>
-          <path d="M 189 246 V 266 M 219 246 V 266"/>
+                <div class="legs">
 
-          <!-- ear pokes out from behind the right side of the head -->
-          <path d="M 262 188 q 15 0 14 13 q -1 12 -14 10" style="fill: var(--color-bg)"/>
+                    <div class="left-foot">
+                        <div class="left-foot-1"></div>
+                        <div class="left-foot-2"></div>
+                        <div class="left-foot-3"></div>
+                    </div>
+                    <div class="left-leg">
+                        <div class="left-leg-1"></div>
+                        <div class="left-leg-2"></div>
+                        <div class="left-leg-3"></div>
+                        <div class="left-leg-4"></div>
+                    </div>
+                    <div class="right-foot"></div>
+                    <div class="right-leg">
+                        <div class="right-leg-1"></div>
+                        <div class="right-leg-2"></div>
+                        <div class="right-leg-3"></div>
+                        <div class="right-leg-4"></div>
+                        <div class="right-leg-5"></div>
+                    </div>
+                    <div class="thigh-gap">
+                        <div class="thigh-gap-1"></div>
+                        <div class="thigh-gap-2"></div>
+                        <div class="thigh-gap-3"></div>
+                        <div class="thigh-gap-4"></div>
+                        <div class="thigh-gap-5"></div>
+                    </div>
+                </div>
 
-          <!-- big egg-shaped head -->
-          <path d="M 142 180 C 142 150 164 138 204 138 C 244 138 266 150 266 180
-                   L 266 198 C 266 234 238 252 204 252 C 170 252 142 234 142 198 Z"
-                style="fill: var(--color-bg)"/>
+                <div class="body">
+                    <div class="stripe-bottom">
+                        <div class="stripe-bottom-1"></div>
+                        <div class="stripe-bottom-2"></div>
+                        <div class="stripe-bottom-3"></div>
+                    </div>
+                    <div class="arm-left">
+                        <div class="arm-left-1"></div>
+                        <div class="arm-left-2"></div>
+                    </div>
+                    <div class="wrist-left"></div>
+                    <div class="hand-left">
+                        <div class="hand-left-1"></div>
+                        <div class="hand-left-2"></div>
+                        <div class="hand-left-3"></div>
+                        <div class="hand-left-4"></div>
+                        <div class="hand-left-5"></div>
+                        <div class="hand-left-6"></div>
+                        <div class="hand-left-7"></div>
+                        <div class="hand-left-8"></div>
+                        <div class="hand-left-9"></div>
+                        <div class="hand-left-10"></div>
+                        <div class="hand-left-11"></div>
+                        <div class="hand-left-12"></div>
+                    </div>
+                    <div class="suit-left">
+                        <div class="suit-left-1"></div>
+                        <div class="suit-left-2"></div>
+                        <div class="suit-left-3"></div>
+                        <div class="suit-left-4"></div>
+                    </div>
+                    <div class="stripe-middle"></div>
+                    <div class="suit-right">
+                        <div class="suit-right-1"></div>
+                        <div class="suit-right-2"></div>
+                        <div class="suit-right-3"></div>
+                        <div class="suit-right-4"></div>
+                    </div>
+                    <div class="waist-right"></div>
+                    <div class="hand-right">
+                        <div class="hand-right-1"></div>
+                        <div class="hand-right-2"></div>
+                        <div class="hand-right-3"></div>
+                        <div class="hand-right-4"></div>
+                        <div class="hand-right-5"></div>
+                        <div class="hand-right-6"></div>
+                        <div class="hand-right-7"></div>
+                    </div>
+                    <div class="arm-right">
+                        <div class="arm-right-1"></div>
+                        <div class="arm-right-2"></div>
+                        <div class="arm-right-3"></div>
+                        <div class="arm-right-4"></div>
+                        <div class="arm-right-5"></div>
+                        <div class="arm-right-6"></div>
+                        <div class="arm-right-7"></div>
+                        <div class="arm-right-8"></div>
+                    </div>
+                    <div class="collar"></div>
+                </div>
 
-          <!-- the trademark hair swoosh, squashed out the sides of the hat -->
-          <path d="M 156 152 Q 128 146 133 172 Q 151 178 158 166 Z" style="fill: var(--color-bg)"/>
-          <path d="M 252 152 Q 280 146 275 172 Q 257 178 250 166 Z" style="fill: var(--color-bg)"/>
+                <div class="hair-side"></div>
+                <div class="neck"></div>
+                <div class="head">
+                    <div class="right-ear"></div>
+                </div>
 
-          <!-- face: wink, open eye, nose, grin -->
-          <path d="M 172 180 q 8 7 16 0"/>
-          <circle cx="222" cy="177" r="6.5" fill="currentColor" stroke="none"/>
-          <path d="M 205 181 Q 203 193 194 195"/>
-          <path d="M 178 202 Q 180 224 202 224 Q 220 224 222 206"/>
+                <div class="head-shading"></div>
 
-          <!-- hardhat: crest, dome, emblem, brim -->
-          <path d="M 190 80 V 68 Q 190 60 198 60 H 210 Q 218 60 218 68 V 80" style="fill: var(--color-bg)"/>
-          <path d="M 140 134 C 140 94 168 78 204 78 C 240 78 268 94 268 134 Z" style="fill: var(--color-bg)"/>
-          <circle cx="204" cy="104" r="7" stroke-width="3"/>
-          <rect x="116" y="132" width="176" height="14" rx="7" style="fill: var(--color-bg)"/>
+                <div class="face">
+                    <div class="left-eye"></div>
+                    <div class="left-eyebrow"></div>
+                    <div class="right-eye"></div>
+                    <div class="right-eyebrow"></div>
+                    <div class="nose"></div>
+                    <div class="mouth">
+                        <div class="bottom-lip"></div>
+                        <div class="top-lip"></div>
+                        <div class="left-lip"></div>
+                        <div class="right-lip"></div>
+                    </div>
 
-          <!-- vault-suit torso, open at the bottom where the hammer sits -->
-          <path d="M 127 376 V 298 Q 127 262 163 262 H 245 Q 281 262 281 298 V 376"
-                style="fill: var(--color-bg)"/>
-          <path d="M 198 264 V 290 M 210 264 V 290"/>
+                    <div class="chin"></div>
+                </div>
 
-          <!-- arms reaching out and down to the handle -->
-          <path d="M 133 268 Q 103 268 103 293 V 318"/>
-          <path d="M 275 268 Q 305 268 305 293 V 318"/>
+                <div class="hair">
+                    <div class="hair-1"></div>
+                    <div class="hair-2"></div>
+                    <div class="hair-3"></div>
+                    <div class="hair-4"></div>
+                    <div class="hair-5"></div>
+                    <div class="hair-6"></div>
+                    <div class="hair-7"></div>
+                    <div class="hair-8"></div>
+                    <div class="hair-9"></div>
+                    <div class="hair-10"></div>
+                    <div class="hair-11"></div>
 
-          <!-- everything that shakes: handle, motor, bit, hands, debris -->
-          <g class="vb-jackhammer">
-            <rect x="92" y="320" width="224" height="16" rx="8" style="fill: var(--color-bg)"/>
-            <rect x="157" y="330" width="94" height="92" rx="6" style="fill: var(--color-bg)"/>
-            <path d="M 174 352 H 234 M 174 400 H 234"/>
-            <path d="M 187 422 V 430 Q 187 436 193 436 H 215 Q 221 436 221 430 V 422"
-                  style="fill: var(--color-bg)"/>
-            <rect x="198" y="436" width="12" height="44" rx="3" fill="currentColor" stroke="none"/>
-            <ellipse cx="120" cy="328" rx="13" ry="14" style="fill: var(--color-bg)"/>
-            <ellipse cx="288" cy="328" rx="13" ry="14" style="fill: var(--color-bg)"/>
-            <path d="M 174 477 L 188 470 M 220 470 L 234 477 M 200 482 H 208"/>
-          </g>
-        </svg>
+                    <div class="sideburns">
+                        <div class="sideburn1"></div>
+                        <div class="sideburn2"></div>
+                        <div class="sideburn3"></div>
+                        <div class="sideburn4"></div>
+                        <div class="sideburn5"></div>
+                    </div>
+                </div>
+
+                <div class="legs"></div>
+                <div class="hardhat-dome"></div>
+                <div class="hardhat-crest"></div>
+                <div class="hardhat-brim"></div>
+                <div class="jackhammer">
+                  <div class="jh-handle"></div>
+                  <div class="jh-grip-l"></div>
+                  <div class="jh-grip-r"></div>
+                  <div class="jh-body"></div>
+                  <div class="jh-rib1"></div>
+                  <div class="jh-rib2"></div>
+                  <div class="jh-rib3"></div>
+                  <div class="jh-collar"></div>
+                  <div class="jh-bit"></div>
+                  <div class="jh-spark-l"></div>
+                  <div class="jh-spark-r"></div>
+                </div>
+            </div>
+        </div>
         <figcaption>Under Construction</figcaption>
       </figure>
 

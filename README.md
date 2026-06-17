@@ -41,3 +41,11 @@ leave it checked.
   only (never `innerHTML`), no `eval`/`Function`, and command parsing is an
   exact-match whitelist.
 - No third-party scripts beyond the Google Fonts stylesheet.
+
+## Credits
+
+The "under construction" Vault Boy on the Projects screen is a pure-CSS
+drawing adapted from Stephan Vermeire's "Vault-Boy in CSS"
+([codepen.io/Verstroom/pen/xwaojj](https://codepen.io/Verstroom/pen/xwaojj)).
+Its colors were remapped to the terminal palette and a hardhat + jackhammer
+were added; see section 8 of `style.css`.
