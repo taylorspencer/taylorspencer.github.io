@@ -81,8 +81,7 @@ Kept in a clearly separated section of `style.css` so the heavy CRT effects
   (2px transparent / 1px dark), `pointer-events: none`, `z-index: 1000`.
   Keep opacity low — readability beats authenticity.
 - **Cursor blink:** `steps(1)` 1.1s — hard on/off, not a fade.
-- **Reduced motion:** `prefers-reduced-motion: reduce` stops the cursor (and the
-  hammer animation, if reactivated).
+- **Reduced motion:** `prefers-reduced-motion: reduce` stops the cursor.
 
 ---
 
@@ -99,13 +98,3 @@ Kept in a clearly separated section of `style.css` so the heavy CRT effects
   syntax does. (The author reads this code to learn.)
 - **Tokens first** — every color, spacing unit, and timing value lives in the
   `:root` block.
-
----
-
-## Known inactive code
-
-- **`#hammer-arm` / `@keyframes hammer-swing`** in `style.css` are currently
-  **dormant**. They were built for an earlier line-figure SVG that had a grouped
-  hammer arm. The current traced Vault Boy has no `#hammer-arm` group, so the
-  figure is **static** and these rules match nothing. Left in place intentionally
-  — to reactivate, group the arm/hammer paths in the SVG with `id="hammer-arm"`.

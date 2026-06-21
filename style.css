@@ -255,31 +255,9 @@ body::after {
   }
 }
 
-/* The Vault Boy's right arm + hammer swing back and forth. steps() quantizes
-   the rotation into a few discrete frames, so it reads like a choppy 2D
-   stop-motion perk card rather than a smooth modern tween.
-   transform-box: view-box makes transform-origin use the SVG's own 0-200
-   coordinate space, so the pivot lands on the shoulder joint (130, 140) and
-   the arm stays attached to the body. */
-#hammer-arm {
-  transform-box: view-box;
-  transform-origin: 130px 140px;
-  animation: hammer-swing 0.7s steps(4) infinite alternate;
-}
-
-@keyframes hammer-swing {
-  from {
-    transform: rotate(-22deg);
-  }
-  to {
-    transform: rotate(10deg);
-  }
-}
-
-/* Visitors who opt out of motion get a solid cursor and a still hammer. */
+/* Visitors who opt out of motion get a solid cursor. */
 @media (prefers-reduced-motion: reduce) {
-  .cursor,
-  #hammer-arm {
+  .cursor {
     animation: none;
   }
 }
