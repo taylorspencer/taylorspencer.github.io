@@ -161,6 +161,75 @@ document.addEventListener(
 );
 
 /* ------------------------------------------------------------
+   BOOT SEQUENCE
+   On load, a short boot log types out above the header, then
+   the header itself types, then the main menu appears at once.
+   ------------------------------------------------------------ */
+
+// The flavor lines typed before the header. The header lines themselves
+// are deliberately NOT listed here: their text lives in index.html and is
+// read from the DOM below, so the real content exists in exactly one
+// place. The empty string is a genuine blank line in the log — the typing
+// engine pauses on it instead of skipping it.
+const BOOT_LINES = [
+  "ROBCO TERMLINK PROTOCOL v2.0",
+  "INITIALIZING TERMINAL...",
+  "",
+  "STACK CHECK: HTML / CSS / JAVASCRIPT — NO FRAMEWORKS DETECTED",
+  "HOST LINK: GITHUB PAGES NETWORK ... ESTABLISHED",
+];
+
+function runBootSequence() {
+  const preamble = document.querySelector(".boot-preamble");
+  const mainElement = document.querySelector("main");
+  const headerLines = document.querySelectorAll(".terminal-header .header-line");
+
+  // Hide the menu for the duration of the boot. Added here, by script,
+  // rather than written into the HTML — so a visitor without JavaScript
+  // still gets the whole site immediately; for them, boot simply never
+  // happens.
+  mainElement.hidden = true;
+
+  // Build the full ordered list of typing steps: the preamble lines, then
+  // the three header lines. Header text is captured from the DOM and the
+  // elements blanked, ready to be typed back in.
+  const steps = [];
+  for (const text of BOOT_LINES) {
+    // element: null — each preamble line gets a fresh element created at
+    // its turn (below), so the log grows downward like a real terminal.
+    steps.push({ element: null, text });
+  }
+  for (const line of headerLines) {
+    steps.push({ element: line, text: line.textContent });
+    line.textContent = "";
+  }
+
+  // Type each step, then the next, by handing typeText this same function
+  // as its onComplete. Because the steps chain through onComplete, the
+  // click-to-skip handler's cascade finishes ALL of them at once — one
+  // click anywhere mid-boot lands the visitor on the finished screen.
+  let stepIndex = 0;
+  function typeNextStep() {
+    if (stepIndex >= steps.length) {
+      // Boot finished. The menu appears all at once — menus are furniture
+      // to navigate, not content to read, so they never type.
+      mainElement.hidden = false;
+      return;
+    }
+    const step = steps[stepIndex];
+    stepIndex += 1;
+
+    let element = step.element;
+    if (!element) {
+      element = document.createElement("p");
+      preamble.appendChild(element);
+    }
+    typeText(element, step.text, TYPE_SPEED_MS, typeNextStep);
+  }
+  typeNextStep();
+}
+
+/* ------------------------------------------------------------
    SCREEN NAVIGATION
    ------------------------------------------------------------ */
 
@@ -191,3 +260,8 @@ function showScreen(targetId) {
 for (const button of document.querySelectorAll("button[data-target]")) {
   button.addEventListener("click", () => showScreen(button.dataset.target));
 }
+
+// Everything is wired — power on. This runs as soon as the script loads,
+// which is after the DOM is parsed (the <script> tag sits at the end of
+// <body>), so every element the boot needs already exists.
+runBootSequence();

@@ -77,7 +77,8 @@ body {
    3. LAYOUT — header chrome and screens
    ------------------------------------------------------------ */
 
-/* Header and content share one centered column. */
+/* Boot log, header, and content share one centered column. */
+.boot-preamble,
 .terminal-header,
 main {
   width: min(100%, var(--content-width));
@@ -85,9 +86,27 @@ main {
   padding-inline: var(--space-md);
 }
 
-/* The in-game boot header is centered, all one brightness. */
-.terminal-header {
+/* The boot log the typing engine fills on load. It owns the page's top
+   padding (the header used to) so the layout is identical whether the log
+   is full or — for visitors without JavaScript — stays empty: padding on
+   an empty element still renders. Dim green, like the site's other
+   secondary flavor text. */
+.boot-preamble {
   padding-top: var(--space-lg);
+  color: var(--color-green-dim);
+}
+
+/* Each log line reserves exactly one line of height from the moment it's
+   created, so the page doesn't jump as text arrives — and so the log's
+   blank spacer line shows as a real gap instead of collapsing to nothing. */
+.boot-preamble p {
+  margin: 0;
+  min-height: calc(1em * var(--line-height));
+}
+
+/* The in-game boot header is centered, all one brightness. Its old top
+   padding lives on .boot-preamble now, directly above. */
+.terminal-header {
   text-align: center;
 }
 

@@ -17,6 +17,12 @@
 </head>
 <body>
 
+  <!-- The boot log types into here on load (script.js creates one line
+       element per entry). Starts empty and stays empty without JavaScript.
+       aria-hidden because it's in-universe flavor, not content — screen
+       readers go straight to the real header and menu below. -->
+  <div class="boot-preamble" aria-hidden="true"></div>
+
   <!-- In-universe terminal chrome, centered like the in-game boot header. -->
   <header class="terminal-header">
     <h1 class="header-line">ROBCO INDUSTRIES UNIFIED OPERATING SYSTEM</h1>
