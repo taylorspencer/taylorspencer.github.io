@@ -140,6 +140,19 @@ function cancelActiveRun() {
   activeRun = null;
 }
 
+// Skip the active run AND everything chained after it, in one instant.
+// While `skipping` is true, every typeText call completes immediately —
+// so finishing the current run cascades through the whole remaining
+// sequence: boot log, header, section text, whatever was queued up.
+function skipActiveSequence() {
+  if (!activeRun) {
+    return;
+  }
+  skipping = true;
+  finishActiveRun();
+  skipping = false;
+}
+
 // Click anywhere to skip. One listener on the document covers every typing
 // run, current and future; when nothing is typing, clicks pass through
 // untouched. The `true` registers it in the capture phase, which runs
@@ -147,18 +160,7 @@ function cancelActiveRun() {
 // finishes the text already on screen, THEN navigates. In the default
 // bubble phase the order flips, and a menu click would instantly finish
 // the very text it had just started typing.
-document.addEventListener(
-  "click",
-  () => {
-    if (!activeRun) {
-      return;
-    }
-    skipping = true; // every chained typeText call is now instant...
-    finishActiveRun(); // ...so this cascades through the whole sequence
-    skipping = false;
-  },
-  true
-);
+document.addEventListener("click", skipActiveSequence, true);
 
 /* ------------------------------------------------------------
    BOOT SEQUENCE
@@ -306,6 +308,31 @@ function showScreen(targetId) {
 for (const button of document.querySelectorAll("button[data-target]")) {
   button.addEventListener("click", () => showScreen(button.dataset.target));
 }
+
+// Escape mirrors the in-game "back out of the entry" key, in two layers.
+// First press while text is typing: skip it — the keyboard counterpart of
+// click-to-skip, so skipping (including the whole boot) never requires a
+// mouse. Once everything is still: back out of the open section to the
+// main menu, the previous layer of the terminal. Tab is deliberately NOT
+// used for this even though the in-game terminals use it — in a browser,
+// Tab is how keyboard users move focus between the menu buttons, and
+// stealing it would strand them.
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") {
+    return;
+  }
+  if (activeRun) {
+    skipActiveSequence();
+    return;
+  }
+  // During boot the whole <main> is hidden but the menu section inside it
+  // still counts as the "open" one, so this stays a harmless no-op until
+  // boot finishes. On the main menu itself there is no previous layer.
+  const openScreen = document.querySelector("main > section:not([hidden])");
+  if (openScreen && openScreen.id !== "main-menu") {
+    showScreen("main-menu");
+  }
+});
 
 // Everything is wired — power on. This runs as soon as the script loads,
 // which is after the DOM is parsed (the <script> tag sits at the end of
