@@ -228,6 +228,23 @@ function runBootSequence() {
     }
     typeText(element, step.text, TYPE_SPEED_MS, typeNextStep);
   }
+
+  // The boot animation plays only on a genuine arrival. The browser
+  // reports how this load happened — "navigate" is a fresh visit, while
+  // "reload" is a refresh and "back_forward" the history buttons — so no
+  // cookies or storage are needed to tell them apart, and the house rule
+  // that nothing on this site remembers anything still holds. On a repeat
+  // view the whole sequence runs through the same instant path
+  // click-to-skip uses: identical finished screen, none of the waiting.
+  // (Browsers too old to report a navigation type just get the show.)
+  const navigation = performance.getEntriesByType("navigation")[0];
+  const isRepeatView = Boolean(navigation) && navigation.type !== "navigate";
+  if (isRepeatView) {
+    skipping = true;
+    typeNextStep(); // the chain completes synchronously while skipping
+    skipping = false;
+    return;
+  }
   typeNextStep();
 }
 
