@@ -25,7 +25,7 @@ Monofonto, the face the in-game FO3/FNV terminals use).
 3. **CRT polish** — phosphor glow, scanline intensity, flicker, vignette,
    curvature (tunable; heavy effects desktop-only)
 4. **Interactivity** — whitelisted typeable commands, contact input,
-   green/amber toggle, optional sound (off by default)
+   optional sound (off by default)
 5. **Custom domain + real contact form destination**
 
 ## One-time manual setup

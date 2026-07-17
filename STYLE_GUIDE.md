@@ -9,8 +9,8 @@ change. Intended as the reference for future and separate work sessions.
 ## Colors
 
 All colors are CSS custom properties in the `:root` block of `style.css`.
-**Never hard-code a hex value** — reference the token, so a future amber-mode
-toggle (Phase 4) can recolor the whole site (and the Vault Boy) from one place.
+**Never hard-code a hex value** — reference the token, so the palette stays
+consistent across every screen and changes propagate from one place.
 
 | Token | Value | Use |
 |---|---|---|

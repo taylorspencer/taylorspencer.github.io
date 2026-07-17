@@ -185,8 +185,8 @@ main {
 }
 
 /* The Vault Boy is a traced SVG in two layers driven from here, so it tracks
-   the terminal palette (and any Phase 4 color toggle) instead of the brighter
-   #39ff14 the trace shipped with:
+   the terminal palette instead of the brighter #39ff14 the trace shipped
+   with:
      .vb-body — the figure, filled in the terminal green
      .vb-cut  — the fine detail, filled in the background so it reads as the
                 dark line-work cut into the figure
