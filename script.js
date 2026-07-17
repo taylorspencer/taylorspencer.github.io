@@ -237,10 +237,33 @@ function runBootSequence() {
 // sections after load, so grabbing them once up front is enough.
 const screens = document.querySelectorAll("main > section");
 
+// Each screen's body text, captured once at load. The text keeps living in
+// index.html — this map just remembers it so every visit can blank the
+// paragraphs and retype them. Only direct <p> children are captured:
+// headings, buttons, and the Vault Boy figure are structure and navigation,
+// which appear instantly — body text is the "entry" you read, so it alone
+// types. (The main menu has no <p> children, so it never lands in the map
+// and never types.) Nothing is stored beyond this page load, by design.
+const screenParagraphs = new Map();
+for (const screen of screens) {
+  const paragraphs = [];
+  for (const paragraph of screen.querySelectorAll(":scope > p")) {
+    paragraphs.push({ element: paragraph, text: paragraph.textContent });
+  }
+  if (paragraphs.length > 0) {
+    screenParagraphs.set(screen.id, paragraphs);
+  }
+}
+
 // Show the screen whose id matches `targetId`; hide all the others.
 // The `hidden` attribute removes a section from both sight and the
 // keyboard order, so visitors can't tab into an invisible screen.
 function showScreen(targetId) {
+  // Whatever the old screen was still typing stops where it stands — no
+  // finishing, no chaining onward, no remembering how far it got. The
+  // next visit to that screen retypes from the top.
+  cancelActiveRun();
+
   for (const screen of screens) {
     screen.hidden = screen.id !== targetId;
   }
@@ -252,6 +275,29 @@ function showScreen(targetId) {
   if (heading) {
     heading.focus();
   }
+
+  // Type the screen's body text back in — the "reading an entry" moment.
+  const paragraphs = screenParagraphs.get(targetId);
+  if (!paragraphs) {
+    return;
+  }
+  // Blank every paragraph up front, so the later ones don't sit fully
+  // formed on screen while the first is still typing.
+  for (const paragraph of paragraphs) {
+    paragraph.element.textContent = "";
+  }
+  // Same chaining pattern as the boot sequence: each paragraph hands off
+  // to the next through onComplete, so one click finishes them all.
+  let paragraphIndex = 0;
+  function typeNextParagraph() {
+    if (paragraphIndex >= paragraphs.length) {
+      return;
+    }
+    const paragraph = paragraphs[paragraphIndex];
+    paragraphIndex += 1;
+    typeText(paragraph.element, paragraph.text, TYPE_SPEED_MS, typeNextParagraph);
+  }
+  typeNextParagraph();
 }
 
 // Wire-up: every navigation button declares its destination with a
