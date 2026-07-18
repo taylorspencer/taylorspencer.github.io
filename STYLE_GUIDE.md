@@ -80,13 +80,12 @@ Kept in a clearly separated section of `style.css` so the heavy CRT effects
 - **Scanlines:** fixed full-viewport `repeating-linear-gradient`
   (2px transparent / 1px dark), `pointer-events: none`, `z-index: 1000`.
   Keep opacity low — readability beats authenticity.
-- **Boot roll-off:** the finished boot log exits with a jittery CRT
-  vertical roll (`--roll-duration`; uneven `translate` jumps with 1-3px
-  sideways kicks, dimming as it climbs) — modeled on real Pip-Boy 3000
-  hardware — then the real screen pops in, no fade.
+- **Boot cut:** the finished boot log exits with a hard single-frame cut
+  (no roll, no fade — a terminal clears its screen instantly), a beat of
+  bare glow, then the header types and the menu pops in. A possible
+  screen-glow effect on the cut is an open Phase 3 question.
 - **Cursor blink:** `steps(1)` 1.1s — hard on/off, not a fade.
-- **Reduced motion:** `prefers-reduced-motion: reduce` stops the cursor
-  and the roll (JS also never triggers the roll for those visitors).
+- **Reduced motion:** `prefers-reduced-motion: reduce` stops the cursor.
 
 ---
 

@@ -35,17 +35,12 @@ const BOOT_TYPE_SPEED_MS = 28;
 const BLANK_LINE_PAUSE_MS = 400;
 
 // How long the finished boot log pulses behind its blinking cursor —
-// about one full blink — before the CRT roll carries it away.
+// about one full blink — before the screen cuts to blank.
 const BOOT_HOLD_MS = 1000;
 
-// How long the CRT vertical roll takes to carry the log up and off the
-// screen. This must stay in step with --roll-duration in style.css: the
-// CSS plays the roll, this constant tells the boot chain when it's over.
-const BOOT_ROLL_MS = 400;
-
-// The beat of bare, empty glow between the log rolling off and the
+// The beat of bare, empty glow between the log cutting away and the
 // header starting to type — on the real hardware the tube sits blank
-// for a moment before the next page blooms in.
+// for a moment before the next page appears.
 const BOOT_BLANK_MS = 350;
 
 // Visitors can tell their OS they want less motion, and the browser passes
@@ -226,12 +221,13 @@ const BOOT_LINES = [
 // (which shares the in-game terminals' operating system):
 //   1. the boot log types out, deliberate, line by line
 //   2. the finished log pulses behind a blinking cursor for a beat
-//   3. the CRT roll: the whole log climbs up and off the screen like
-//      the tube losing sync, and is wiped once it's gone
+//   3. the cut: the log vanishes in a single frame — a terminal clears
+//      its screen instantly, it doesn't ease anything away
 //   4. the bare glow holds for a moment
 //   5. the header types onto the clean screen
-//   6. the menu pops in all at once (menus are furniture to navigate,
-//      not content to read, so they never type)
+//   6. the menu pops in all at once, timed to the final header
+//      character (menus are furniture to navigate, not content to
+//      read, so they never type)
 // Every phase chains through onComplete, which is what lets one click or
 // Escape press flush the entire boot — all six phases — in one instant.
 function runBootSequence() {
@@ -257,7 +253,7 @@ function runBootSequence() {
   // comes, so the log grows downward like a real terminal printing.
   function typeLogLine(index) {
     if (index >= BOOT_LINES.length) {
-      holdRollAndWipe();
+      holdThenCut();
       return;
     }
     const element = document.createElement("p");
@@ -268,9 +264,8 @@ function runBootSequence() {
   // Phases 2 through 4 — the blinking cursor reuses the same .cursor
   // class (and CSS animation) as the resting prompt, built with
   // createElement rather than markup strings, like everything else on
-  // the site. The roll itself is a CSS animation; the timing chain stays
-  // in pauseTyping so a click or Escape can still cut through any of it.
-  function holdRollAndWipe() {
+  // the site.
+  function holdThenCut() {
     const cursorLine = document.createElement("p");
     const cursor = document.createElement("span");
     cursor.className = "cursor";
@@ -279,18 +274,9 @@ function runBootSequence() {
     preamble.appendChild(cursorLine);
 
     pauseTyping(BOOT_HOLD_MS, () => {
-      // On the instant paths the roll never plays — the log just goes.
-      if (!skipping && !reducedMotion.matches) {
-        preamble.classList.add("boot-roll");
-      }
-      pauseTyping(BOOT_ROLL_MS, () => {
-        // The wipe. The log (cursor included) is gone until the next
-        // boot, and the class comes off so a rolled-empty container
-        // isn't left carrying a stale animation.
-        preamble.classList.remove("boot-roll");
-        preamble.textContent = "";
-        pauseTyping(BOOT_BLANK_MS, () => typeHeaderLine(0));
-      });
+      // The cut. The log (cursor included) is gone until the next boot.
+      preamble.textContent = "";
+      pauseTyping(BOOT_BLANK_MS, () => typeHeaderLine(0));
     });
   }
 
