@@ -21,21 +21,28 @@
 
 // Typing speed in milliseconds per character for section text and the
 // header — the things a visitor actually reads.
-const TYPE_SPEED_MS = 20;
+const TYPE_SPEED_MS = 25;
 
-// The boot log types noticeably faster: in the games, the boot chatter
-// rushes past like machine output, not like something typed for a reader.
-const BOOT_TYPE_SPEED_MS = 12;
+// The boot log types SLOWER than everything else: initialization should
+// feel like an old machine warming up, deliberate line by deliberate
+// line. The realism lives in the unhurried pace.
+const BOOT_TYPE_SPEED_MS = 35;
 
 // How long a blank line holds the stage, in milliseconds. A blank line has
 // no characters to type, so without this it would flash past in zero time
 // instead of reading as a deliberate beat in the boot log.
 const BLANK_LINE_PAUSE_MS = 400;
 
-// How long the finished boot log lingers — behind a blinking cursor —
-// before the screen wipes clean, in-game style, and the real terminal
-// screen (header, then menu) takes over.
-const BOOT_HOLD_MS = 800;
+// How long the finished boot log pulses behind its blinking cursor —
+// about one full blink — before the CRT flash fires and the screen wipes
+// to the real terminal.
+const BOOT_HOLD_MS = 1000;
+
+// How far into the CRT flash the actual wipe happens, in milliseconds.
+// The flash animation itself lives in style.css (--flash-duration, 300ms);
+// this just times the log's disappearance to land near the flash's bright
+// peak, so the screen seems to clear INSIDE the burst of light.
+const BOOT_FLASH_WIPE_MS = 100;
 
 // Visitors can tell their OS they want less motion, and the browser passes
 // that on to us here. When it's set, every typing animation skips straight
@@ -211,11 +218,35 @@ const BOOT_LINES = [
   "HOST LINK: GITHUB PAGES NETWORK ... ESTABLISHED",
 ];
 
+// One quick phosphor pulse over the whole screen — the CRT flash that
+// covers the boot log's wipe. Purely cosmetic: the boot's timing chain
+// runs through pauseTyping, so this only plays the CSS animation and
+// tidies the class up afterward. Never fires on the instant paths — a
+// screen flash is exactly the kind of motion reduced-motion visitors
+// opted out of, and a skip should land silently on the final screen.
+function flashScreen() {
+  if (skipping || reducedMotion.matches) {
+    return;
+  }
+  const body = document.body;
+  body.classList.add("crt-flash");
+  // animationend fires on body when the pseudo-element's flash finishes;
+  // matching on the animation name means an unrelated animation ending
+  // elsewhere on the page can never strip the class early.
+  body.addEventListener("animationend", function clearFlash(event) {
+    if (event.animationName !== "crt-flash") {
+      return;
+    }
+    body.classList.remove("crt-flash");
+    body.removeEventListener("animationend", clearFlash);
+  });
+}
+
 // The boot plays out in five phases, faithful to the in-game terminals:
-//   1. the boot log bursts past, fast, line by line
-//   2. the finished log lingers for a beat behind a blinking cursor
-//   3. the screen wipes — the log vanishes, like the terminal clearing
-//      from its boot chatter to the real screen
+//   1. the boot log types out, slow and deliberate, line by line
+//   2. the finished log pulses behind a blinking cursor for a beat
+//   3. the CRT flash fires and the screen wipes inside it — the log
+//      vanishes, like the terminal clearing to its real screen
 //   4. the header types onto the now-clean screen
 //   5. the menu appears all at once (menus are furniture to navigate,
 //      not content to read, so they never type)
@@ -254,7 +285,8 @@ function runBootSequence() {
 
   // Phases 2 and 3 — the blinking cursor reuses the same .cursor class
   // (and CSS animation) as the resting prompt, built with createElement
-  // rather than markup strings, like everything else on the site.
+  // rather than markup strings, like everything else on the site. After
+  // the hold, the flash fires and the wipe hides inside its bright peak.
   function holdThenWipe() {
     const cursorLine = document.createElement("p");
     const cursor = document.createElement("span");
@@ -264,9 +296,12 @@ function runBootSequence() {
     preamble.appendChild(cursorLine);
 
     pauseTyping(BOOT_HOLD_MS, () => {
-      // The wipe. The log (cursor included) is gone until the next boot.
-      preamble.textContent = "";
-      typeHeaderLine(0);
+      flashScreen();
+      pauseTyping(BOOT_FLASH_WIPE_MS, () => {
+        // The wipe. The log (cursor included) is gone until the next boot.
+        preamble.textContent = "";
+        typeHeaderLine(0);
+      });
     });
   }
 

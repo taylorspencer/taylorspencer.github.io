@@ -37,6 +37,7 @@
   /* Timing & effects */
   --blink-period: 1.1s;           /* full on/off cycle of the block cursor */
   --phosphor-bleed: 1px;          /* tiny text-shadow that fattens strokes like a CRT */
+  --flash-duration: 300ms;        /* the CRT pulse that covers the boot log's wipe */
 }
 
 /* ------------------------------------------------------------
@@ -261,6 +262,40 @@ body::after {
   );
 }
 
+/* The CRT flash: one quick phosphor pulse across the whole screen,
+   played when the boot log wipes to the real terminal screen (script.js
+   toggles the class). It sits BELOW the scanlines (z-index 999 vs their
+   1000) so the stripes stay visible through the burst, the way a real
+   tube's glow would. body::before is the flash layer; body::after
+   (above) carries the scanlines. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+  background-color: var(--color-green);
+  opacity: 0;
+}
+
+body.crt-flash::before {
+  animation: crt-flash var(--flash-duration) ease-out;
+}
+
+/* Snap bright fast, then decay like phosphor. Peak opacity stays well
+   below full so it reads as a pulse of glow, never a strobe. */
+@keyframes crt-flash {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 /* The blinking block cursor on the prompt line. steps(1) makes it
    snap on/off like a real terminal instead of fading. */
 .cursor {
@@ -274,9 +309,12 @@ body::after {
   }
 }
 
-/* Visitors who opt out of motion get a solid cursor. */
+/* Visitors who opt out of motion get a solid cursor and no flash.
+   (script.js also never triggers the flash for them — this rule is the
+   CSS side of the same promise.) */
 @media (prefers-reduced-motion: reduce) {
-  .cursor {
+  .cursor,
+  body.crt-flash::before {
     animation: none;
   }
 }
