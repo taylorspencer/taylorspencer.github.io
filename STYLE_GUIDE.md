@@ -63,6 +63,10 @@ consistent across every screen and changes propagate from one place.
 - **Screen headings (`.screen-heading`)** — Title case, underlined via
   `border-bottom: 1px solid currentColor`, `width: fit-content`.
 - **Resting prompt** — `>█` with a blinking block cursor.
+- **Boot skip hint** — `[ PRESS ENTER TO BYPASS STARTUP DIAGNOSTIC ]`,
+  dim, pinned bottom-center, visible only while the boot plays. NOT
+  aria-hidden (unlike the boot log): screen readers should hear the
+  shortcut. Enter, click, and Escape all skip.
 - **Vault Boy (`.vault-boy-anim`)** — a traced SVG driven entirely from CSS in
   two layers: `.vb-body { fill: var(--color-green) }` for the figure and
   `.vb-cut { fill: var(--color-bg) }` for the dark detail lines. Sized 240px

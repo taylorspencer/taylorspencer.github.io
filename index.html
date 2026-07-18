@@ -23,6 +23,13 @@
        readers go straight to the real header and menu below. -->
   <div class="boot-preamble" aria-hidden="true"></div>
 
+  <!-- Skip hint, shown only while the boot sequence plays (script.js
+       unhides it, then hides it again when the menu appears). Unlike the
+       decorative boot log this is deliberately NOT aria-hidden: screen
+       reader users wait through the same boot delay before the menu
+       unhides, and this line is their fastest way past it. -->
+  <p class="boot-skip-hint" hidden>[ PRESS ENTER TO BYPASS STARTUP DIAGNOSTIC ]</p>
+
   <!-- In-universe terminal chrome, centered like the in-game boot header. -->
   <header class="terminal-header">
     <h1 class="header-line">ROBCO INDUSTRIES UNIFIED OPERATING SYSTEM</h1>

@@ -234,12 +234,15 @@ function runBootSequence() {
   const preamble = document.querySelector(".boot-preamble");
   const mainElement = document.querySelector("main");
   const headerLines = document.querySelectorAll(".terminal-header .header-line");
+  const skipHint = document.querySelector(".boot-skip-hint");
 
   // Hide the menu for the duration of the boot. Added here, by script,
   // rather than written into the HTML — so a visitor without JavaScript
   // still gets the whole site immediately; for them, boot simply never
-  // happens.
+  // happens. The skip hint is the reverse: hidden in the HTML (a no-JS
+  // visitor has nothing to skip) and shown only while boot runs.
   mainElement.hidden = true;
+  skipHint.hidden = false;
 
   // Capture the header text and blank the elements, ready to be typed
   // back in after the wipe. The text itself keeps living in index.html.
@@ -284,7 +287,9 @@ function runBootSequence() {
   function typeHeaderLine(index) {
     if (index >= headerSteps.length) {
       // The menu pops in, all at once, no fade — a terminal draws its
-      // screen; it doesn't ease into it.
+      // screen; it doesn't ease into it. The skip hint leaves with the
+      // boot: there's nothing left to skip.
+      skipHint.hidden = true;
       mainElement.hidden = false;
       return;
     }
@@ -396,6 +401,13 @@ for (const button of document.querySelectorAll("button[data-target]")) {
 // Tab is how keyboard users move focus between the menu buttons, and
 // stealing it would strand them.
 document.addEventListener("keydown", (event) => {
+  // Enter is the advertised skip key — the boot hint names it — and it
+  // does exactly one thing: fast-forward whatever is typing. Navigation
+  // stays Escape's job.
+  if (event.key === "Enter") {
+    skipActiveSequence();
+    return;
+  }
   if (event.key !== "Escape") {
     return;
   }

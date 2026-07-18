@@ -104,6 +104,28 @@ main {
   min-height: calc(1em * var(--line-height));
 }
 
+/* The boot skip hint: pinned to the bottom of the screen so it stays
+   put while log lines grow above it, dim like the rest of the boot
+   chrome. Only visible while the boot plays — script.js toggles the
+   `hidden` attribute. Allowed to wrap on narrow phones rather than
+   overflow. */
+.boot-skip-hint {
+  position: fixed;
+  bottom: var(--space-lg);
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  /* A fixed element at left: 50% only gets the right half of the screen
+     to size itself in, which would wrap the line early. max-content
+     sizes the box to the text; the max-width cap lets it wrap (centered)
+     only when a narrow phone genuinely can't fit it. */
+  width: max-content;
+  max-width: 100%;
+  padding-inline: var(--space-md);
+  text-align: center;
+  color: var(--color-green-dim);
+}
+
 /* The in-game boot header is centered, all one brightness. Its old top
    padding lives on .boot-preamble now, directly above. */
 .terminal-header {
