@@ -24,11 +24,17 @@
   <div class="boot-preamble" aria-hidden="true"></div>
 
   <!-- Skip hint, shown only while the boot sequence plays (script.js
-       unhides it, then hides it again when the menu appears). Unlike the
-       decorative boot log this is deliberately NOT aria-hidden: screen
-       reader users wait through the same boot delay before the menu
-       unhides, and this line is their fastest way past it. -->
-  <p class="boot-skip-hint" hidden>[ PRESS ENTER TO BYPASS STARTUP DIAGNOSTIC ]</p>
+       unhides it, then hides it again when the menu appears). Two
+       phrasings live here and CSS shows exactly one, chosen by the
+       device's primary pointer: touch-first devices have no Enter key.
+       Unlike the decorative boot log this is deliberately NOT
+       aria-hidden: screen reader users wait through the same boot delay
+       before the menu unhides, and this line is their fastest way past
+       it (they hear only the visible variant). -->
+  <p class="boot-skip-hint" hidden>
+    <span class="skip-hint-keyboard">[ PRESS ENTER TO BYPASS TERMINAL INITIALIZATION ]</span>
+    <span class="skip-hint-touch">[ TOUCH ANYWHERE TO BYPASS TERMINAL INITIALIZATION ]</span>
+  </p>
 
   <!-- In-universe terminal chrome, centered like the in-game boot header. -->
   <header class="terminal-header">

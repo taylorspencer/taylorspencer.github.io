@@ -126,6 +126,26 @@ main {
   color: var(--color-green-dim);
 }
 
+/* One hint, two phrasings: the HTML carries both, and the browser's
+   pointer says which to show. A touch-first device (coarse pointer, no
+   hover — phones, tablets) has no Enter key, so it gets the TOUCH
+   wording; everything else sees the keyboard one. display: none also
+   hides the unused variant from screen readers, so they announce
+   exactly what the visitor can actually do. */
+.boot-skip-hint .skip-hint-touch {
+  display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .boot-skip-hint .skip-hint-keyboard {
+    display: none;
+  }
+
+  .boot-skip-hint .skip-hint-touch {
+    display: inline;
+  }
+}
+
 /* The in-game boot header is centered, all one brightness. Its old top
    padding lives on .boot-preamble now, directly above. */
 .terminal-header {

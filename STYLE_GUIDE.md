@@ -63,10 +63,13 @@ consistent across every screen and changes propagate from one place.
 - **Screen headings (`.screen-heading`)** — Title case, underlined via
   `border-bottom: 1px solid currentColor`, `width: fit-content`.
 - **Resting prompt** — `>█` with a blinking block cursor.
-- **Boot skip hint** — `[ PRESS ENTER TO BYPASS STARTUP DIAGNOSTIC ]`,
-  dim, pinned bottom-center, visible only while the boot plays. NOT
-  aria-hidden (unlike the boot log): screen readers should hear the
-  shortcut. Enter, click, and Escape all skip.
+- **Boot skip hint** — dim, pinned bottom-center, visible only while the
+  boot plays. Two phrasings in the HTML, one shown per device via
+  `@media (hover: none) and (pointer: coarse)`: keyboard devices get
+  `[ PRESS ENTER TO BYPASS TERMINAL INITIALIZATION ]`, touch devices
+  `[ TOUCH ANYWHERE TO BYPASS TERMINAL INITIALIZATION ]`. NOT aria-hidden
+  (unlike the boot log): screen readers hear the visible variant.
+  Enter, click/tap, and Escape all skip.
 - **Vault Boy (`.vault-boy-anim`)** — a traced SVG driven entirely from CSS in
   two layers: `.vb-body { fill: var(--color-green) }` for the figure and
   `.vb-cut { fill: var(--color-bg) }` for the dark detail lines. Sized 240px
