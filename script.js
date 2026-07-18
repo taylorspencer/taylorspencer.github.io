@@ -41,7 +41,7 @@ const BOOT_HOLD_MS = 1000;
 // How long the CRT vertical roll takes to carry the log up and off the
 // screen. This must stay in step with --roll-duration in style.css: the
 // CSS plays the roll, this constant tells the boot chain when it's over.
-const BOOT_ROLL_MS = 600;
+const BOOT_ROLL_MS = 400;
 
 // The beat of bare, empty glow between the log rolling off and the
 // header starting to type — on the real hardware the tube sits blank
@@ -230,7 +230,7 @@ const BOOT_LINES = [
 //      the tube losing sync, and is wiped once it's gone
 //   4. the bare glow holds for a moment
 //   5. the header types onto the clean screen
-//   6. the menu blooms in all at once (menus are furniture to navigate,
+//   6. the menu pops in all at once (menus are furniture to navigate,
 //      not content to read, so they never type)
 // Every phase chains through onComplete, which is what lets one click or
 // Escape press flush the entire boot — all six phases — in one instant.
@@ -297,11 +297,8 @@ function runBootSequence() {
   // Phases 5 and 6.
   function typeHeaderLine(index) {
     if (index >= headerSteps.length) {
-      // The menu blooms in with a quick phosphor fade (CSS one-shot,
-      // skipped on the instant paths where any motion would be wrong).
-      if (!skipping && !reducedMotion.matches) {
-        mainElement.classList.add("phosphor-in");
-      }
+      // The menu pops in, all at once, no fade — a terminal draws its
+      // screen; it doesn't ease into it.
       mainElement.hidden = false;
       return;
     }
@@ -375,28 +372,26 @@ function showScreen(targetId) {
     heading.focus();
   }
 
-  // Type the screen's body text back in — the "reading an entry" moment.
+  // The "reading an entry" moment: only the FIRST paragraph — the
+  // in-universe loading line ("Accessing personnel record...") — actually
+  // types. The rest of the entry pops in complete the instant that line
+  // finishes: the terminal has "fetched" the record, and making a visitor
+  // reread a whole entry at typing speed gets tedious fast.
   const paragraphs = screenParagraphs.get(targetId);
   if (!paragraphs) {
     return;
   }
-  // Blank every paragraph up front, so the later ones don't sit fully
-  // formed on screen while the first is still typing.
+  // Blank everything up front, so the entry isn't sitting fully formed
+  // on screen while its loading line is still typing.
   for (const paragraph of paragraphs) {
     paragraph.element.textContent = "";
   }
-  // Same chaining pattern as the boot sequence: each paragraph hands off
-  // to the next through onComplete, so one click finishes them all.
-  let paragraphIndex = 0;
-  function typeNextParagraph() {
-    if (paragraphIndex >= paragraphs.length) {
-      return;
+  const loadingLine = paragraphs[0];
+  typeText(loadingLine.element, loadingLine.text, TYPE_SPEED_MS, () => {
+    for (const paragraph of paragraphs.slice(1)) {
+      paragraph.element.textContent = paragraph.text;
     }
-    const paragraph = paragraphs[paragraphIndex];
-    paragraphIndex += 1;
-    typeText(paragraph.element, paragraph.text, TYPE_SPEED_MS, typeNextParagraph);
-  }
-  typeNextParagraph();
+  });
 }
 
 // Wire-up: every navigation button declares its destination with a

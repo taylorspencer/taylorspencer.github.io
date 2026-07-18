@@ -37,8 +37,7 @@
   /* Timing & effects */
   --blink-period: 1.1s;           /* full on/off cycle of the block cursor */
   --phosphor-bleed: 1px;          /* tiny text-shadow that fattens strokes like a CRT */
-  --roll-duration: 600ms;         /* the CRT vertical roll that carries the boot log off */
-  --reveal-fade: 350ms;           /* the phosphor bloom when the real screen appears */
+  --roll-duration: 400ms;         /* the CRT vertical roll that carries the boot log off */
 }
 
 /* ------------------------------------------------------------
@@ -263,34 +262,46 @@ body::after {
   );
 }
 
-/* The boot log's exit: a CRT vertical roll, modeled on real hardware —
-   the whole picture accelerates up and off the tube like the sync
-   letting go, dimming slightly as it climbs, leaving only the bare
-   glow behind. script.js adds the class for the roll's duration (kept
-   in step with --roll-duration), then wipes the log for good.
-   `forwards` holds the rolled-away end state so the log can't blink
-   back in the instant before the wipe. */
+/* The boot log's exit: a CRT vertical roll with the jitter of real
+   hardware. The picture doesn't glide — it stutters upward in uneven
+   jumps with small sideways kicks, the way a tube rolls when sync lets
+   go. script.js adds the class for the roll's duration (kept in step
+   with --roll-duration), then wipes the log for good. `forwards` holds
+   the rolled-away end state so the log can't blink back in the instant
+   before the wipe. */
 .boot-preamble.boot-roll {
-  animation: boot-roll-up var(--roll-duration) ease-in forwards;
+  animation: boot-roll-up var(--roll-duration) linear forwards;
 }
 
+/* Uneven vertical progress plus 1-3px horizontal kicks IS the jitter:
+   with a linear timing function, the irregular spacing between these
+   stops makes the climb lurch instead of glide. Opacity is only set at
+   the end, so the log dims steadily all the way up. */
 @keyframes boot-roll-up {
-  to {
-    transform: translateY(-120%);
-    opacity: 0.4;
+  0% {
+    transform: translate(0, 0);
   }
-}
-
-/* The real screen blooms in like phosphor warming up, not a hard cut.
-   Added once, when boot reveals the menu; the class is inert after its
-   one-shot animation ends. */
-main.phosphor-in {
-  animation: phosphor-in var(--reveal-fade) ease-out;
-}
-
-@keyframes phosphor-in {
-  from {
-    opacity: 0;
+  18% {
+    transform: translate(2px, -8%);
+  }
+  30% {
+    transform: translate(-3px, -26%);
+  }
+  42% {
+    transform: translate(1px, -34%);
+  }
+  58% {
+    transform: translate(-2px, -58%);
+  }
+  72% {
+    transform: translate(3px, -71%);
+  }
+  86% {
+    transform: translate(-1px, -96%);
+  }
+  100% {
+    transform: translate(0, -125%);
+    opacity: 0.4;
   }
 }
 
@@ -307,13 +318,12 @@ main.phosphor-in {
   }
 }
 
-/* Visitors who opt out of motion get a solid cursor, no roll, and no
-   bloom. (script.js also never triggers those animations for them —
-   this rule is the CSS side of the same promise.) */
+/* Visitors who opt out of motion get a solid cursor and no roll.
+   (script.js also never triggers the roll for them — this rule is the
+   CSS side of the same promise.) */
 @media (prefers-reduced-motion: reduce) {
   .cursor,
-  .boot-preamble.boot-roll,
-  main.phosphor-in {
+  .boot-preamble.boot-roll {
     animation: none;
   }
 }

@@ -80,13 +80,13 @@ Kept in a clearly separated section of `style.css` so the heavy CRT effects
 - **Scanlines:** fixed full-viewport `repeating-linear-gradient`
   (2px transparent / 1px dark), `pointer-events: none`, `z-index: 1000`.
   Keep opacity low — readability beats authenticity.
-- **Boot roll-off:** the finished boot log exits with a CRT vertical roll
-  (`--roll-duration`, `translateY` up and off, `ease-in`, slight dim) —
-  modeled on real Pip-Boy 3000 hardware — then the real screen blooms in
-  over `--reveal-fade` (`main.phosphor-in`).
+- **Boot roll-off:** the finished boot log exits with a jittery CRT
+  vertical roll (`--roll-duration`; uneven `translate` jumps with 1-3px
+  sideways kicks, dimming as it climbs) — modeled on real Pip-Boy 3000
+  hardware — then the real screen pops in, no fade.
 - **Cursor blink:** `steps(1)` 1.1s — hard on/off, not a fade.
-- **Reduced motion:** `prefers-reduced-motion: reduce` stops the cursor,
-  the roll, and the bloom (JS also never triggers them for those visitors).
+- **Reduced motion:** `prefers-reduced-motion: reduce` stops the cursor
+  and the roll (JS also never triggers the roll for those visitors).
 
 ---
 
