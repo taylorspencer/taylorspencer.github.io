@@ -16,15 +16,26 @@
    click-to-skip and reduced-motion stays consistent site-wide.
    ------------------------------------------------------------ */
 
-// Typing speed in milliseconds per character. A named constant up here —
-// not a magic number inside the function — so tuning the feel of the whole
-// site is a one-line change.
-const TYPE_SPEED_MS = 30;
+// Every timing knob lives here, named, so tuning the feel of the whole
+// site never means digging through the functions below.
+
+// Typing speed in milliseconds per character for section text and the
+// header — the things a visitor actually reads.
+const TYPE_SPEED_MS = 20;
+
+// The boot log types noticeably faster: in the games, the boot chatter
+// rushes past like machine output, not like something typed for a reader.
+const BOOT_TYPE_SPEED_MS = 12;
 
 // How long a blank line holds the stage, in milliseconds. A blank line has
 // no characters to type, so without this it would flash past in zero time
 // instead of reading as a deliberate beat in the boot log.
 const BLANK_LINE_PAUSE_MS = 400;
+
+// How long the finished boot log lingers — behind a blinking cursor —
+// before the screen wipes clean, in-game style, and the real terminal
+// screen (header, then menu) takes over.
+const BOOT_HOLD_MS = 800;
 
 // Visitors can tell their OS they want less motion, and the browser passes
 // that on to us here. When it's set, every typing animation skips straight
@@ -72,17 +83,11 @@ function typeText(element, text, speedMs = TYPE_SPEED_MS, onComplete) {
 
   element.textContent = "";
 
-  // A blank line types nothing but still deserves its moment: hold briefly,
-  // then move on, so empty spacer lines read as a pause instead of
-  // vanishing. setTimeout fires once; setInterval (below) fires repeatedly.
+  // A blank line types nothing but still deserves its moment: hand the
+  // beat to pauseTyping so empty spacer lines read as a pause instead of
+  // vanishing.
   if (text.length === 0) {
-    const timerId = setTimeout(finishActiveRun, BLANK_LINE_PAUSE_MS);
-    activeRun = {
-      element,
-      text,
-      onComplete,
-      stop: () => clearTimeout(timerId),
-    };
+    pauseTyping(BLANK_LINE_PAUSE_MS, onComplete);
     return;
   }
 
@@ -110,6 +115,29 @@ function typeText(element, text, speedMs = TYPE_SPEED_MS, onComplete) {
   };
 }
 
+// Hold the stage for `ms` with nothing typing, then move on. Registered
+// as a run like any typing, so click-to-skip and Escape cut it short the
+// same way. Used for the boot log's blank spacer line and for the beat
+// before the boot screen wipes.
+function pauseTyping(ms, onComplete) {
+  cancelActiveRun();
+  if (skipping || reducedMotion.matches) {
+    if (onComplete) {
+      onComplete();
+    }
+    return;
+  }
+  const timerId = setTimeout(finishActiveRun, ms);
+  // element: null — a pause owns no element, so finishActiveRun knows to
+  // leave the screen alone and just chain onward.
+  activeRun = {
+    element: null,
+    text: "",
+    onComplete,
+    stop: () => clearTimeout(timerId),
+  };
+}
+
 // Jump the active run straight to its finished state: timer stopped, full
 // text in place, onComplete fired. Used by the click-to-skip handler and
 // by the run itself when it types its last character.
@@ -122,7 +150,9 @@ function finishActiveRun() {
   const run = activeRun;
   activeRun = null;
   run.stop();
-  run.element.textContent = run.text;
+  if (run.element) {
+    run.element.textContent = run.text;
+  }
   if (run.onComplete) {
     run.onComplete();
   }
@@ -181,6 +211,16 @@ const BOOT_LINES = [
   "HOST LINK: GITHUB PAGES NETWORK ... ESTABLISHED",
 ];
 
+// The boot plays out in five phases, faithful to the in-game terminals:
+//   1. the boot log bursts past, fast, line by line
+//   2. the finished log lingers for a beat behind a blinking cursor
+//   3. the screen wipes — the log vanishes, like the terminal clearing
+//      from its boot chatter to the real screen
+//   4. the header types onto the now-clean screen
+//   5. the menu appears all at once (menus are furniture to navigate,
+//      not content to read, so they never type)
+// Every phase chains through onComplete, which is what lets one click or
+// Escape press flush the entire boot — all five phases — in one instant.
 function runBootSequence() {
   const preamble = document.querySelector(".boot-preamble");
   const mainElement = document.querySelector("main");
@@ -192,41 +232,52 @@ function runBootSequence() {
   // happens.
   mainElement.hidden = true;
 
-  // Build the full ordered list of typing steps: the preamble lines, then
-  // the three header lines. Header text is captured from the DOM and the
-  // elements blanked, ready to be typed back in.
-  const steps = [];
-  for (const text of BOOT_LINES) {
-    // element: null — each preamble line gets a fresh element created at
-    // its turn (below), so the log grows downward like a real terminal.
-    steps.push({ element: null, text });
-  }
+  // Capture the header text and blank the elements, ready to be typed
+  // back in after the wipe. The text itself keeps living in index.html.
+  const headerSteps = [];
   for (const line of headerLines) {
-    steps.push({ element: line, text: line.textContent });
+    headerSteps.push({ element: line, text: line.textContent });
     line.textContent = "";
   }
 
-  // Type each step, then the next, by handing typeText this same function
-  // as its onComplete. Because the steps chain through onComplete, the
-  // click-to-skip handler's cascade finishes ALL of them at once — one
-  // click anywhere mid-boot lands the visitor on the finished screen.
-  let stepIndex = 0;
-  function typeNextStep() {
-    if (stepIndex >= steps.length) {
-      // Boot finished. The menu appears all at once — menus are furniture
-      // to navigate, not content to read, so they never type.
+  // Phase 1 — each log line gets a fresh element appended as its turn
+  // comes, so the log grows downward like a real terminal printing.
+  function typeLogLine(index) {
+    if (index >= BOOT_LINES.length) {
+      holdThenWipe();
+      return;
+    }
+    const element = document.createElement("p");
+    preamble.appendChild(element);
+    typeText(element, BOOT_LINES[index], BOOT_TYPE_SPEED_MS, () => typeLogLine(index + 1));
+  }
+
+  // Phases 2 and 3 — the blinking cursor reuses the same .cursor class
+  // (and CSS animation) as the resting prompt, built with createElement
+  // rather than markup strings, like everything else on the site.
+  function holdThenWipe() {
+    const cursorLine = document.createElement("p");
+    const cursor = document.createElement("span");
+    cursor.className = "cursor";
+    cursor.textContent = "█"; // the block character the prompt uses
+    cursorLine.appendChild(cursor);
+    preamble.appendChild(cursorLine);
+
+    pauseTyping(BOOT_HOLD_MS, () => {
+      // The wipe. The log (cursor included) is gone until the next boot.
+      preamble.textContent = "";
+      typeHeaderLine(0);
+    });
+  }
+
+  // Phases 4 and 5.
+  function typeHeaderLine(index) {
+    if (index >= headerSteps.length) {
       mainElement.hidden = false;
       return;
     }
-    const step = steps[stepIndex];
-    stepIndex += 1;
-
-    let element = step.element;
-    if (!element) {
-      element = document.createElement("p");
-      preamble.appendChild(element);
-    }
-    typeText(element, step.text, TYPE_SPEED_MS, typeNextStep);
+    const step = headerSteps[index];
+    typeText(step.element, step.text, TYPE_SPEED_MS, () => typeHeaderLine(index + 1));
   }
 
   // The boot animation plays only on a genuine arrival. The browser
@@ -241,11 +292,11 @@ function runBootSequence() {
   const isRepeatView = Boolean(navigation) && navigation.type !== "navigate";
   if (isRepeatView) {
     skipping = true;
-    typeNextStep(); // the chain completes synchronously while skipping
+    typeLogLine(0); // all five phases complete synchronously while skipping
     skipping = false;
     return;
   }
-  typeNextStep();
+  typeLogLine(0);
 }
 
 /* ------------------------------------------------------------
