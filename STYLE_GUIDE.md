@@ -80,12 +80,13 @@ Kept in a clearly separated section of `style.css` so the heavy CRT effects
 - **Scanlines:** fixed full-viewport `repeating-linear-gradient`
   (2px transparent / 1px dark), `pointer-events: none`, `z-index: 1000`.
   Keep opacity low — readability beats authenticity.
-- **CRT flash:** one-shot phosphor pulse on `body::before`
-  (`--flash-duration`, peak opacity 0.45) covering the boot log's wipe;
-  sits below the scanlines so the stripes show through the burst.
+- **Boot roll-off:** the finished boot log exits with a CRT vertical roll
+  (`--roll-duration`, `translateY` up and off, `ease-in`, slight dim) —
+  modeled on real Pip-Boy 3000 hardware — then the real screen blooms in
+  over `--reveal-fade` (`main.phosphor-in`).
 - **Cursor blink:** `steps(1)` 1.1s — hard on/off, not a fade.
-- **Reduced motion:** `prefers-reduced-motion: reduce` stops the cursor
-  and the flash (JS also never triggers the flash for those visitors).
+- **Reduced motion:** `prefers-reduced-motion: reduce` stops the cursor,
+  the roll, and the bloom (JS also never triggers them for those visitors).
 
 ---
 

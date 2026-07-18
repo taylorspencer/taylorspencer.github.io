@@ -23,10 +23,11 @@
 // header — the things a visitor actually reads.
 const TYPE_SPEED_MS = 25;
 
-// The boot log types SLOWER than everything else: initialization should
+// The boot log types slower than everything else: initialization should
 // feel like an old machine warming up, deliberate line by deliberate
-// line. The realism lives in the unhurried pace.
-const BOOT_TYPE_SPEED_MS = 35;
+// line. Tuned against footage of a real Pip-Boy 3000 boot, whose log
+// runs at close to this cadence.
+const BOOT_TYPE_SPEED_MS = 28;
 
 // How long a blank line holds the stage, in milliseconds. A blank line has
 // no characters to type, so without this it would flash past in zero time
@@ -34,15 +35,18 @@ const BOOT_TYPE_SPEED_MS = 35;
 const BLANK_LINE_PAUSE_MS = 400;
 
 // How long the finished boot log pulses behind its blinking cursor —
-// about one full blink — before the CRT flash fires and the screen wipes
-// to the real terminal.
+// about one full blink — before the CRT roll carries it away.
 const BOOT_HOLD_MS = 1000;
 
-// How far into the CRT flash the actual wipe happens, in milliseconds.
-// The flash animation itself lives in style.css (--flash-duration, 300ms);
-// this just times the log's disappearance to land near the flash's bright
-// peak, so the screen seems to clear INSIDE the burst of light.
-const BOOT_FLASH_WIPE_MS = 100;
+// How long the CRT vertical roll takes to carry the log up and off the
+// screen. This must stay in step with --roll-duration in style.css: the
+// CSS plays the roll, this constant tells the boot chain when it's over.
+const BOOT_ROLL_MS = 600;
+
+// The beat of bare, empty glow between the log rolling off and the
+// header starting to type — on the real hardware the tube sits blank
+// for a moment before the next page blooms in.
+const BOOT_BLANK_MS = 350;
 
 // Visitors can tell their OS they want less motion, and the browser passes
 // that on to us here. When it's set, every typing animation skips straight
@@ -218,40 +222,18 @@ const BOOT_LINES = [
   "HOST LINK: GITHUB PAGES NETWORK ... ESTABLISHED",
 ];
 
-// One quick phosphor pulse over the whole screen — the CRT flash that
-// covers the boot log's wipe. Purely cosmetic: the boot's timing chain
-// runs through pauseTyping, so this only plays the CSS animation and
-// tidies the class up afterward. Never fires on the instant paths — a
-// screen flash is exactly the kind of motion reduced-motion visitors
-// opted out of, and a skip should land silently on the final screen.
-function flashScreen() {
-  if (skipping || reducedMotion.matches) {
-    return;
-  }
-  const body = document.body;
-  body.classList.add("crt-flash");
-  // animationend fires on body when the pseudo-element's flash finishes;
-  // matching on the animation name means an unrelated animation ending
-  // elsewhere on the page can never strip the class early.
-  body.addEventListener("animationend", function clearFlash(event) {
-    if (event.animationName !== "crt-flash") {
-      return;
-    }
-    body.classList.remove("crt-flash");
-    body.removeEventListener("animationend", clearFlash);
-  });
-}
-
-// The boot plays out in five phases, faithful to the in-game terminals:
-//   1. the boot log types out, slow and deliberate, line by line
+// The boot plays out in six phases, modeled on real Pip-Boy hardware
+// (which shares the in-game terminals' operating system):
+//   1. the boot log types out, deliberate, line by line
 //   2. the finished log pulses behind a blinking cursor for a beat
-//   3. the CRT flash fires and the screen wipes inside it — the log
-//      vanishes, like the terminal clearing to its real screen
-//   4. the header types onto the now-clean screen
-//   5. the menu appears all at once (menus are furniture to navigate,
+//   3. the CRT roll: the whole log climbs up and off the screen like
+//      the tube losing sync, and is wiped once it's gone
+//   4. the bare glow holds for a moment
+//   5. the header types onto the clean screen
+//   6. the menu blooms in all at once (menus are furniture to navigate,
 //      not content to read, so they never type)
 // Every phase chains through onComplete, which is what lets one click or
-// Escape press flush the entire boot — all five phases — in one instant.
+// Escape press flush the entire boot — all six phases — in one instant.
 function runBootSequence() {
   const preamble = document.querySelector(".boot-preamble");
   const mainElement = document.querySelector("main");
@@ -275,7 +257,7 @@ function runBootSequence() {
   // comes, so the log grows downward like a real terminal printing.
   function typeLogLine(index) {
     if (index >= BOOT_LINES.length) {
-      holdThenWipe();
+      holdRollAndWipe();
       return;
     }
     const element = document.createElement("p");
@@ -283,11 +265,12 @@ function runBootSequence() {
     typeText(element, BOOT_LINES[index], BOOT_TYPE_SPEED_MS, () => typeLogLine(index + 1));
   }
 
-  // Phases 2 and 3 — the blinking cursor reuses the same .cursor class
-  // (and CSS animation) as the resting prompt, built with createElement
-  // rather than markup strings, like everything else on the site. After
-  // the hold, the flash fires and the wipe hides inside its bright peak.
-  function holdThenWipe() {
+  // Phases 2 through 4 — the blinking cursor reuses the same .cursor
+  // class (and CSS animation) as the resting prompt, built with
+  // createElement rather than markup strings, like everything else on
+  // the site. The roll itself is a CSS animation; the timing chain stays
+  // in pauseTyping so a click or Escape can still cut through any of it.
+  function holdRollAndWipe() {
     const cursorLine = document.createElement("p");
     const cursor = document.createElement("span");
     cursor.className = "cursor";
@@ -296,18 +279,29 @@ function runBootSequence() {
     preamble.appendChild(cursorLine);
 
     pauseTyping(BOOT_HOLD_MS, () => {
-      flashScreen();
-      pauseTyping(BOOT_FLASH_WIPE_MS, () => {
-        // The wipe. The log (cursor included) is gone until the next boot.
+      // On the instant paths the roll never plays — the log just goes.
+      if (!skipping && !reducedMotion.matches) {
+        preamble.classList.add("boot-roll");
+      }
+      pauseTyping(BOOT_ROLL_MS, () => {
+        // The wipe. The log (cursor included) is gone until the next
+        // boot, and the class comes off so a rolled-empty container
+        // isn't left carrying a stale animation.
+        preamble.classList.remove("boot-roll");
         preamble.textContent = "";
-        typeHeaderLine(0);
+        pauseTyping(BOOT_BLANK_MS, () => typeHeaderLine(0));
       });
     });
   }
 
-  // Phases 4 and 5.
+  // Phases 5 and 6.
   function typeHeaderLine(index) {
     if (index >= headerSteps.length) {
+      // The menu blooms in with a quick phosphor fade (CSS one-shot,
+      // skipped on the instant paths where any motion would be wrong).
+      if (!skipping && !reducedMotion.matches) {
+        mainElement.classList.add("phosphor-in");
+      }
       mainElement.hidden = false;
       return;
     }
