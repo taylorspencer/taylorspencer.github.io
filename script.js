@@ -335,9 +335,10 @@ document.addEventListener("charprinted", (event) => {
 
 // The toggle. Its click is the user gesture browsers require before
 // sound: the AudioContext is born here, on the first press, and never
-// earlier. Each press flips the state, relabels the button, keeps the
+// earlier. Each press flips the state, updates aria-pressed, keeps the
 // boot log's AUDIO RELAY line honest, and (when turning on) clicks, so
-// the visitor hears that it worked.
+// the visitor hears that it worked. The icon needs no code: CSS swaps
+// waves for the X from aria-pressed alone.
 const speakerToggle = document.querySelector(".speaker-toggle");
 speakerToggle.hidden = false;
 speakerToggle.addEventListener("click", () => {
@@ -349,7 +350,6 @@ speakerToggle.addEventListener("click", () => {
   audioContext.resume();
   speakerOn = !speakerOn;
   speakerToggle.setAttribute("aria-pressed", String(speakerOn));
-  speakerToggle.textContent = speakerOn ? "[ SPEAKER: ON ]" : "[ SPEAKER: OFF ]";
   updateAudioRelayLine();
   playClick();
 });

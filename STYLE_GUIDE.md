@@ -70,17 +70,25 @@ consistent across every screen and changes propagate from one place.
   `[ TOUCH ANYWHERE TO BYPASS TERMINAL INITIALIZATION ]`. NOT aria-hidden
   (unlike the boot log): screen readers hear the visible variant.
   Enter, click/tap, and Escape all skip.
-- **Speaker toggle (`.speaker-toggle`)** — a real `<button>` reading
-  `[ SPEAKER: OFF ]` / `[ SPEAKER: ON ]` with `aria-pressed`, pinned
-  top-right (`position: fixed; top: 0; right: 0`) on every screen, boot
-  included. Built from menu-row parts: `min-height: var(--tap-target)`,
+- **Speaker toggle (`.speaker-toggle`)**: a real `<button>` with
+  `aria-pressed` and `aria-label="Speaker"`, whose face is a vintage
+  cabinet speaker drawn as inline SVG in `currentColor` (`.speaker-icon`,
+  sized `--space-lg`). On shows sound waves; off shows an X. CSS picks the
+  shape from `aria-pressed` alone, so the picture and the screen-reader
+  state can't disagree. The grille slots use the `.vb-cut` trick
+  (`--color-bg` stroke) and flip to `--color-green` when inverted.
+  Built from menu-row parts: `min-width`/`min-height: var(--tap-target)`,
   `padding: var(--space-xs) var(--space-sm)`, `--color-bg` behind it.
   States: OFF in `--color-green-dim`, ON in `--color-green`, and the same
-  inverted hover/focus as `.menu-item`. At ≤600px `body`
-  carries `padding-top: var(--tap-target)` so the toggle never covers the
-  boot log or header; wider layouts are unchanged (measured: the first boot line reaches under the toggle below about 590px). Starts OFF on every visit; nothing is stored.
-  Clicking it and pressing Enter on it are exempt from boot skipping.
-  No new tokens.
+  inverted hover/focus as `.menu-item`.
+  **Placement:** inside `.speaker-bar`, which is never pinned to the
+  screen, so it scrolls away with the page and can't cover text after
+  scrolling. Wider than 600px: absolute in the page's top-right corner,
+  clear of the centered header and the left-aligned boot log. At 600px
+  and narrower: a static, right-aligned row at the top of the page that
+  reserves its own tap-target height (the old `body` padding is gone).
+  Starts OFF on every visit; nothing is stored. Clicking it and pressing
+  Enter on it are exempt from boot skipping. No new tokens.
 - **Vault Boy (`.vault-boy-anim`)** — a traced SVG driven entirely from CSS in
   two layers: `.vb-body { fill: var(--color-green) }` for the figure and
   `.vb-cut { fill: var(--color-bg) }` for the dark detail lines. Sized 240px

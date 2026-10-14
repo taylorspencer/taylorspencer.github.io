@@ -19,11 +19,26 @@
 
   <!-- Speaker toggle: opt-in sound. A real <button> so keyboards and
        screen readers get it for free; aria-pressed tells assistive tech
-       whether it's on. Visible from the first frame, including during
-       boot, and always starts OFF — nothing about it is remembered.
+       whether it's on, and aria-label gives it a name because its face is
+       an icon, not words. Always starts OFF; nothing is remembered.
        Without JavaScript it does nothing, so it starts hidden and
-       script.js reveals it. -->
-  <button class="speaker-toggle" type="button" aria-pressed="false" hidden>[ SPEAKER: OFF ]</button>
+       script.js reveals it.
+       It lives in .speaker-bar, a strip at the top of the page (not
+       pinned to the screen), so it scrolls away with the content and can
+       never sit on top of text. -->
+  <div class="speaker-bar">
+    <button class="speaker-toggle" type="button" aria-pressed="false" aria-label="Speaker" hidden>
+      <!-- A vintage cabinet speaker drawn in currentColor, so it follows
+           the button's green and inverts with it on hover/focus. CSS
+           shows the sound waves when on and the X when off. -->
+      <svg class="speaker-icon" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <path class="speaker-body" d="M4 12h5l8-7v22l-8-7H4z"/>
+        <path class="speaker-grille" d="M6 14v4M8 14v4"/>
+        <path class="speaker-waves" d="M21 12.5a5 5 0 0 1 0 7M24 9.5a9.5 9.5 0 0 1 0 13M27 6.5a14 14 0 0 1 0 19"/>
+        <path class="speaker-x" d="M21 12l8 8M29 12l-8 8"/>
+      </svg>
+    </button>
+  </div>
 
   <!-- The boot log types into here on load (script.js creates one line
        element per entry). Starts empty and stays empty without JavaScript.

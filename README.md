@@ -30,7 +30,9 @@ Monofonto, the face the in-game FO3/FNV terminals use).
 
 ## Audio (optional, off by default)
 
-A `[ SPEAKER: OFF ]` toggle sits top-right. Sound is **off on every visit**
+A speaker-icon toggle (waves when on, an X when off; `aria-label`
+"Speaker" with `aria-pressed`) sits at the top-right of the page. It
+scrolls with the page instead of staying pinned, so it never covers text. Sound is **off on every visit**
 and resets on refresh: nothing is saved in cookies or storage, and no
 `AudioContext` exists until the visitor presses the toggle (browsers
 require that gesture anyway).

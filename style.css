@@ -186,22 +186,71 @@ main {
   margin: var(--space-lg) 0 0;
 }
 
-/* The speaker toggle, pinned top-right on every screen. Built from the
-   same parts as a menu row — tap-target height, the spacing scale,
-   inverted on hover/focus — so it reads as part of the terminal, not a
-   web widget bolted on. Dim until selected, like other chrome. */
-.speaker-toggle {
-  position: fixed;
+/* The speaker strip. The toggle is NOT pinned to the screen: a pinned
+   button stays put while the page scrolls under it, so the header slid
+   beneath it the moment a phone visitor scrolled. Instead it belongs to
+   the page and scrolls away with it.
+   Wide screens: it sits in the page's top-right corner (absolute to the
+   page, not the screen), where the centered header and the left-aligned
+   boot log never reach.
+   Narrow screens (see the 600px rule in section 7): it becomes its own
+   tap-target-high row at the top of the page, so the boot log and header
+   start below it and nothing can share its space. */
+.speaker-bar {
+  position: absolute;
   top: 0;
   right: 0;
+  z-index: 1;
+}
+
+/* The toggle itself, built from the same parts as a menu row:
+   tap-target size, the spacing scale, inverted on hover/focus, so it
+   reads as part of the terminal, not a web widget bolted on. Dim until
+   switched on, like other chrome. Its face is an inline SVG drawn in
+   currentColor, so every color state below recolors the icon too. */
+.speaker-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap-target);
   min-height: var(--tap-target);
   padding: var(--space-xs) var(--space-sm);
   background-color: var(--color-bg);
   border: none;
-  font: inherit;
-  letter-spacing: inherit;
   color: var(--color-green-dim);
   cursor: pointer;
+}
+
+.speaker-icon {
+  width: var(--space-lg);
+  height: var(--space-lg);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+.speaker-icon .speaker-body {
+  fill: currentColor;
+}
+
+/* The grille slots are cut out of the filled cabinet in background
+   color, the same trick as the Vault Boy's .vb-cut line-work. */
+.speaker-icon .speaker-grille {
+  stroke: var(--color-bg);
+  stroke-width: 1;
+}
+
+/* On: waves. Off: an X. The state lives only in aria-pressed, so what
+   sighted visitors see and what screen readers hear can never disagree. */
+.speaker-toggle .speaker-waves,
+.speaker-toggle[aria-pressed="true"] .speaker-x {
+  display: none;
+}
+
+.speaker-toggle[aria-pressed="true"] .speaker-waves {
+  display: inline;
 }
 
 .speaker-toggle[aria-pressed="true"] {
@@ -214,6 +263,13 @@ main {
   color: var(--color-bg);
   outline: 2px solid transparent;
   outline-offset: -2px;
+}
+
+/* Inverted, the cabinet is dark on green, so its grille slots flip to
+   green to stay visible. */
+.speaker-toggle:hover .speaker-grille,
+.speaker-toggle:focus-visible .speaker-grille {
+  stroke: var(--color-green);
 }
 
 /* ------------------------------------------------------------
@@ -363,13 +419,16 @@ body::after {
   }
 }
 
-/* Narrow screens only: reserve a toggle-height strip at the top so the
-   pinned speaker toggle never sits on the first boot log line or the
-   header. Measured: below about 590px wide the first boot line reaches
-   under the toggle; wider screens keep their original layout. 600px
-   leaves a small margin. */
+/* Narrow screens: the speaker strip drops into the page flow as its own
+   row at the very top, right-aligned. It reserves exactly its own height
+   (and nothing when JavaScript is off and the button stays hidden), and
+   it scrolls away with everything else, so it never covers the boot log
+   or header, at the top of the page or after scrolling. This replaces
+   the old body padding that only protected the top of the page. */
 @media (max-width: 600px) {
-  body {
-    padding-top: var(--tap-target);
+  .speaker-bar {
+    position: static;
+    display: flex;
+    justify-content: flex-end;
   }
 }
