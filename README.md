@@ -39,8 +39,11 @@ require that gesture anyway).
 
 - **`playTick(character)`** runs for every printed character via one
   `document` listener on the typing engine's bubbling `charprinted`
-  event. It skips whitespace and enforces a minimum gap between ticks
-  (`TICK_MIN_GAP_MS`), so fast typing doesn't turn into a buzz. Skips and
+  event. It skips whitespace, then ticks on a random 50–70% of characters
+  (`TICK_CHANCE_MIN` / `TICK_CHANCE_MAX`), so the ticks keep pace with the
+  text at both the slower boot speed and the faster home-screen speed.
+  Pitch, volume and length vary per tick (`*_JITTER` constants), so the
+  pattern never repeats. Skips and
   reduced-motion print instantly and never fire ticks.
 - **`playClick()`** runs on menu selections and on the toggle itself.
 - **Swap point:** both functions synthesize placeholder sounds today. To

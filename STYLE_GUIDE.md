@@ -115,6 +115,18 @@ Kept in a clearly separated section of `style.css` so the heavy CRT effects
 
 ---
 
+## Sound
+
+- **Off by default**, every visit; nothing is stored.
+- **Ticks follow the text:** one chance per printed non-space character,
+  ticking on a random 50–70% (`TICK_CHANCE_MIN` / `TICK_CHANCE_MAX` in
+  `script.js`), with per-tick pitch, volume and length jitter. No fixed
+  minimum gap, so ticks pace with whatever speed the text types at and
+  never fall into a repeating pattern. Typing speeds are not tuned for
+  sound; the slower boot text is intentional.
+
+---
+
 ## Code conventions (carry into every session)
 
 - **Vanilla only** — no frameworks, no build tools, no external JS libraries.
