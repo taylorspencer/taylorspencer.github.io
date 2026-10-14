@@ -199,7 +199,20 @@ function skipActiveSequence() {
 // finishes the text already on screen, THEN navigates. In the default
 // bubble phase the order flips, and a menu click would instantly finish
 // the very text it had just started typing.
-document.addEventListener("click", skipActiveSequence, true);
+//
+// One exemption: the speaker toggle. Turning sound on mid-boot is the
+// whole point of having it visible during boot, so a press on it must
+// not also skip the boot it wants to hear.
+document.addEventListener(
+  "click",
+  (event) => {
+    if (event.target.closest(".speaker-toggle")) {
+      return;
+    }
+    skipActiveSequence();
+  },
+  true
+);
 
 /* ------------------------------------------------------------
    AUDIO
@@ -548,6 +561,11 @@ document.addEventListener("keydown", (event) => {
   // does exactly one thing: fast-forward whatever is typing. Navigation
   // stays Escape's job.
   if (event.key === "Enter") {
+    // Enter on the focused speaker toggle means "press the toggle", not
+    // "skip" — the button's own click does the rest.
+    if (document.activeElement === speakerToggle) {
+      return;
+    }
     skipActiveSequence();
     return;
   }
