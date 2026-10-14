@@ -234,15 +234,16 @@ document.addEventListener(
 // peaking near 3.4 kHz, never closer together than about 45 ms. The site
 // prints a character every 25–28 ms, so ticking on every character
 // would blur into a buzz; the minimum gap thins them to the hardware's
-// rhythm instead.
-const TICK_MIN_GAP_MS = 45;
+// rhythm instead. Tuned down from the measured 3.4 kHz / 45 ms after
+// Taylor heard it on a phone: too high and too fast.
+const TICK_MIN_GAP_MS = 85;
 const TICK_LENGTH_S = 0.015;   // one tick: a 15 ms burst of noise
-const TICK_PITCH_HZ = 3400;    // centre of the tick's narrow band
+const TICK_PITCH_HZ = 2400;    // centre of the tick's narrow band
 const TICK_PITCH_JITTER_HZ = 200; // per-tick wobble so it never sounds looped
 const TICK_VOLUME = 0.25;
 const CLICK_LENGTH_S = 0.04;   // the select chirp: a 40 ms falling square
-const CLICK_START_HZ = 1200;
-const CLICK_END_HZ = 800;
+const CLICK_START_HZ = 700;
+const CLICK_END_HZ = 450;
 const CLICK_VOLUME = 0.12;
 
 // The one AudioContext (the browser's sound engine), or null until the
