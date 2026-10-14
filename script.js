@@ -103,10 +103,13 @@ function typeText(element, text, speedMs = TYPE_SPEED_MS, onComplete) {
     element.textContent += text.charAt(printed);
     printed += 1;
 
-    // Announce each printed character on the element. Nothing listens yet —
-    // this is the hook a future sound pass will attach to, added now so
-    // that feature never needs to reopen this function.
-    element.dispatchEvent(new CustomEvent("charprinted"));
+    // Announce each printed character. bubbles: true lets the event climb
+    // from this element up to `document`, so the audio module below hears
+    // every character on the page with one listener instead of attaching
+    // one to each line. Only this animated path fires it — the instant
+    // path (skip, reduced motion) prints silently, so a skip never
+    // produces a burst of ticks.
+    element.dispatchEvent(new CustomEvent("charprinted", { bubbles: true }));
 
     if (printed >= text.length) {
       finishActiveRun();
