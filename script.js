@@ -202,6 +202,123 @@ function skipActiveSequence() {
 document.addEventListener("click", skipActiveSequence, true);
 
 /* ------------------------------------------------------------
+   AUDIO
+   Optional sound: typing ticks and menu clicks. Off on every
+   visit, and silent until the visitor presses the speaker
+   toggle. Browsers refuse to play sound before a user gesture,
+   and this site remembers nothing between visits, so "off until
+   pressed" is both the polite default and the only reliable one.
+
+   THE SWAP POINT: every sound is made inside playTick() and
+   playClick(). Today they synthesize placeholder sounds; when
+   real samples arrive, only the insides of those two functions
+   change. Nothing that calls them needs to know.
+   ------------------------------------------------------------ */
+
+// Sound knobs, named like the typing knobs above. The tick numbers come
+// from measuring a real Pip-Boy boot recording: a short noise click
+// peaking near 3.4 kHz, never closer together than about 45 ms. The site
+// prints a character every 25–28 ms, so ticking on every character
+// would blur into a buzz; the minimum gap thins them to the hardware's
+// rhythm instead.
+const TICK_MIN_GAP_MS = 45;
+const TICK_LENGTH_S = 0.015;   // one tick: a 15 ms burst of noise
+const TICK_PITCH_HZ = 3400;    // centre of the tick's narrow band
+const TICK_PITCH_JITTER_HZ = 200; // per-tick wobble so it never sounds looped
+const TICK_VOLUME = 0.25;
+const CLICK_LENGTH_S = 0.04;   // the select chirp: a 40 ms falling square
+const CLICK_START_HZ = 1200;
+const CLICK_END_HZ = 800;
+const CLICK_VOLUME = 0.12;
+
+// The one AudioContext (the browser's sound engine), or null until the
+// toggle is first pressed. Created lazily on purpose: making one at page
+// load would start the engine for visitors who never want sound.
+let audioContext = null;
+
+// The single source of truth for "should anything make noise".
+let speakerOn = false;
+
+// When the last tick played, in AudioContext seconds — used to enforce
+// TICK_MIN_GAP_MS.
+let lastTickTime = 0;
+
+// A reusable buffer of white noise, built once on first use. Every tick
+// plays a slice of it through a filter rather than generating fresh noise.
+let noiseBuffer = null;
+
+// Shape a sound's volume: a near-instant rise, then a quick fade to
+// silence. Without the fade every sound would end in an audible pop.
+function envelope(gainNode, startTime, peak, lengthS) {
+  gainNode.gain.setValueAtTime(0.0001, startTime);
+  gainNode.gain.exponentialRampToValueAtTime(peak, startTime + 0.002);
+  gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + lengthS);
+}
+
+// One typing tick. Called for every printed character; whitespace and
+// the minimum gap decide whether this one actually sounds.
+function playTick(character) {
+  if (!speakerOn || !audioContext) {
+    return;
+  }
+  if (character && character.trim() === "") {
+    return; // a space isn't a keystroke on a terminal printer
+  }
+  const now = audioContext.currentTime;
+  if (now - lastTickTime < TICK_MIN_GAP_MS / 1000) {
+    return;
+  }
+  lastTickTime = now;
+
+  // --- placeholder synthesis (swap a sample in here later) ---
+  if (!noiseBuffer) {
+    const length = Math.ceil(audioContext.sampleRate * TICK_LENGTH_S);
+    noiseBuffer = audioContext.createBuffer(1, length, audioContext.sampleRate);
+    const samples = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < length; i += 1) {
+      samples[i] = Math.random() * 2 - 1;
+    }
+  }
+  const source = audioContext.createBufferSource();
+  source.buffer = noiseBuffer;
+  const band = audioContext.createBiquadFilter();
+  band.type = "bandpass";
+  band.frequency.value = TICK_PITCH_HZ + (Math.random() * 2 - 1) * TICK_PITCH_JITTER_HZ;
+  band.Q.value = 4;
+  const gain = audioContext.createGain();
+  envelope(gain, now, TICK_VOLUME * (0.8 + Math.random() * 0.4), TICK_LENGTH_S);
+  source.connect(band).connect(gain).connect(audioContext.destination);
+  source.start(now);
+  source.stop(now + TICK_LENGTH_S);
+}
+
+// One UI click: menu selections and the speaker toggle itself.
+function playClick() {
+  if (!speakerOn || !audioContext) {
+    return;
+  }
+  // --- placeholder synthesis (swap a sample in here later) ---
+  const now = audioContext.currentTime;
+  const tone = audioContext.createOscillator();
+  tone.type = "square";
+  tone.frequency.setValueAtTime(CLICK_START_HZ, now);
+  tone.frequency.exponentialRampToValueAtTime(CLICK_END_HZ, now + CLICK_LENGTH_S);
+  const gain = audioContext.createGain();
+  envelope(gain, now, CLICK_VOLUME, CLICK_LENGTH_S);
+  tone.connect(gain).connect(audioContext.destination);
+  tone.start(now);
+  tone.stop(now + CLICK_LENGTH_S);
+}
+
+// Every printed character, from anywhere on the page, arrives here
+// (the typing engine's event bubbles up to document). The character is
+// the last one now on screen in the element that printed it.
+document.addEventListener("charprinted", (event) => {
+  const text = event.target.textContent;
+  playTick(text.charAt(text.length - 1));
+});
+
+/* ------------------------------------------------------------
    BOOT SEQUENCE
    On load, a short boot log types out above the header, then
    the header itself types, then the main menu appears at once.
