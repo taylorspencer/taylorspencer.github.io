@@ -224,9 +224,9 @@ document.addEventListener(
    pressed" is both the polite default and the only reliable one.
 
    THE SWAP POINT: every sound is made inside playTick() and
-   playClick(). Today they synthesize placeholder sounds; when
-   real samples arrive, only the insides of those two functions
-   change. Nothing that calls them needs to know.
+   playClick(). Each plays a recorded sample from /audio when
+   one is loaded and falls back to a synthesized sound when not.
+   Nothing that calls them needs to know which it got.
    ------------------------------------------------------------ */
 
 // Sound knobs, named like the typing knobs above. The tick numbers come
@@ -265,6 +265,78 @@ let speakerOn = false;
 // plays a slice of it through a filter rather than generating fresh noise.
 let noiseBuffer = null;
 
+/* ---- Recorded sounds (optional, with automatic fallback) ----
+   The real terminal sounds live as small files in /audio, served from
+   this site's own address. They are listed here, and ONLY here: an empty
+   list means "no recordings", so nothing is fetched and the synthesized
+   sounds below play exactly as before. Removing the files later means
+   emptying these lists again (reverting the commit that filled them).
+
+   Nothing is downloaded until the visitor turns the speaker on, so a
+   visitor who never wants sound never pays for the files. If any file
+   fails to load or decode it is simply left out; if none load, the
+   synthesized sounds keep playing. Either way, no visitor ever hears
+   silence because a file went missing. */
+const SAMPLE_TICK_FILES = [];  // several short variants, picked at random
+const SAMPLE_CLICK_FILES = []; // menu / enter clicks, picked at random
+const SAMPLE_RATE_JITTER = 0.06; // each sample plays at 94–106% speed
+const SAMPLE_VOLUME = 0.5;
+
+// Decoded recordings, filled in by loadSamples(). Empty means fallback.
+const tickSamples = [];
+const clickSamples = [];
+
+// The one load attempt, or null until the speaker is first turned on.
+let samplesRequested = false;
+
+// Fetch and decode every listed file into `into`. Each file stands
+// alone: one bad file never stops the others, and a failure is quietly
+// ignored because the synthesized sound is always there to cover it.
+function loadSampleList(paths, into) {
+  for (const path of paths) {
+    fetch(path)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("missing " + path);
+        }
+        return response.arrayBuffer();
+      })
+      .then((bytes) => audioContext.decodeAudioData(bytes))
+      .then((buffer) => into.push(buffer))
+      .catch(() => {
+        // Fallback: this file just isn't used.
+      });
+  }
+}
+
+// Called from the toggle's click the first time the speaker turns on.
+function loadSamples() {
+  if (samplesRequested) {
+    return;
+  }
+  samplesRequested = true;
+  loadSampleList(SAMPLE_TICK_FILES, tickSamples);
+  loadSampleList(SAMPLE_CLICK_FILES, clickSamples);
+}
+
+// Play one recording picked at random from `samples`, slightly faster or
+// slower each time (which also nudges its pitch), at a varied volume.
+// Returns false when there's nothing loaded, so the caller can fall back
+// to synthesis.
+function playRandomSample(samples, volume) {
+  if (samples.length === 0) {
+    return false;
+  }
+  const source = audioContext.createBufferSource();
+  source.buffer = samples[Math.floor(Math.random() * samples.length)];
+  source.playbackRate.value = randomBetween(1 - SAMPLE_RATE_JITTER, 1 + SAMPLE_RATE_JITTER);
+  const gain = audioContext.createGain();
+  gain.gain.value = volume;
+  source.connect(gain).connect(audioContext.destination);
+  source.start();
+  return true;
+}
+
 // Shape a sound's volume: a near-instant rise, then a quick fade to
 // silence. Without the fade every sound would end in an audible pop.
 function envelope(gainNode, startTime, peak, lengthS) {
@@ -291,10 +363,14 @@ function playTick(character) {
   if (Math.random() >= randomBetween(TICK_CHANCE_MIN, TICK_CHANCE_MAX)) {
     return; // this character prints silently
   }
+  // Recorded tick if we have one; otherwise the synthesized stand-in.
+  if (playRandomSample(tickSamples, SAMPLE_VOLUME * randomBetween(1 - TICK_VOLUME_JITTER, 1 + TICK_VOLUME_JITTER))) {
+    return;
+  }
   const now = audioContext.currentTime;
   const lengthS = TICK_LENGTH_S * randomBetween(1 - TICK_LENGTH_JITTER, 1 + TICK_LENGTH_JITTER);
 
-  // --- placeholder synthesis (swap a sample in here later) ---
+  // --- synthesized fallback ---
   if (!noiseBuffer) {
     // Long enough for the longest tick the length jitter can ask for.
     const length = Math.ceil(audioContext.sampleRate * TICK_LENGTH_S * (1 + TICK_LENGTH_JITTER));
@@ -323,7 +399,10 @@ function playClick() {
   if (!speakerOn || !audioContext) {
     return;
   }
-  // --- placeholder synthesis (swap a sample in here later) ---
+  if (playRandomSample(clickSamples, SAMPLE_VOLUME)) {
+    return;
+  }
+  // --- synthesized fallback ---
   const now = audioContext.currentTime;
   const tone = audioContext.createOscillator();
   tone.type = "square";
@@ -360,6 +439,9 @@ speakerToggle.addEventListener("click", () => {
   // resuming inside the gesture is what makes iOS Safari actually play.
   audioContext.resume();
   speakerOn = !speakerOn;
+  if (speakerOn) {
+    loadSamples(); // first time only; never before the speaker is on
+  }
   speakerToggle.setAttribute("aria-pressed", String(speakerOn));
   updateAudioRelayLine();
   playClick();
