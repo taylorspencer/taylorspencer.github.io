@@ -318,6 +318,26 @@ document.addEventListener("charprinted", (event) => {
   playTick(text.charAt(text.length - 1));
 });
 
+// The toggle. Its click is the user gesture browsers require before
+// sound: the AudioContext is born here, on the first press, and never
+// earlier. Each press flips the state, relabels the button, keeps the
+// boot log's AUDIO RELAY line honest, and (when turning on) clicks, so
+// the visitor hears that it worked.
+const speakerToggle = document.querySelector(".speaker-toggle");
+speakerToggle.hidden = false;
+speakerToggle.addEventListener("click", () => {
+  if (!audioContext) {
+    audioContext = new AudioContext();
+  }
+  // Mobile browsers can start (or later park) the engine suspended;
+  // resuming inside the gesture is what makes iOS Safari actually play.
+  audioContext.resume();
+  speakerOn = !speakerOn;
+  speakerToggle.setAttribute("aria-pressed", String(speakerOn));
+  speakerToggle.textContent = speakerOn ? "[ SPEAKER: ON ]" : "[ SPEAKER: OFF ]";
+  playClick();
+});
+
 /* ------------------------------------------------------------
    BOOT SEQUENCE
    On load, a short boot log types out above the header, then
@@ -509,7 +529,10 @@ function showScreen(targetId) {
 // data-target attribute, so adding a menu entry later means touching
 // only the HTML — no new JavaScript.
 for (const button of document.querySelectorAll("button[data-target]")) {
-  button.addEventListener("click", () => showScreen(button.dataset.target));
+  button.addEventListener("click", () => {
+    playClick();
+    showScreen(button.dataset.target);
+  });
 }
 
 // Escape mirrors the in-game "back out of the entry" key, in two layers.

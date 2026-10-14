@@ -186,6 +186,43 @@ main {
   margin: var(--space-lg) 0 0;
 }
 
+/* The speaker toggle, pinned top-right on every screen. Built from the
+   same parts as a menu row — tap-target height, the spacing scale,
+   inverted on hover/focus — so it reads as part of the terminal, not a
+   web widget bolted on. Dim until selected, like other chrome. */
+.speaker-toggle {
+  position: fixed;
+  top: 0;
+  right: 0;
+  min-height: var(--tap-target);
+  padding: var(--space-xs) var(--space-sm);
+  background-color: var(--color-bg);
+  border: none;
+  font: inherit;
+  letter-spacing: inherit;
+  color: var(--color-green-dim);
+  cursor: pointer;
+}
+
+.speaker-toggle[aria-pressed="true"] {
+  color: var(--color-green);
+}
+
+.speaker-toggle:hover,
+.speaker-toggle:focus-visible {
+  background-color: var(--color-green);
+  color: var(--color-bg);
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+}
+
+/* Reserve a toggle-height strip at the top of the page so the pinned
+   toggle never sits on top of the boot log or header — at 375px there's
+   no spare margin beside the centered column to tuck it into. */
+body {
+  padding-top: var(--tap-target);
+}
+
 /* ------------------------------------------------------------
    4. NAVIGATION — the terminal selection list
    Selection inversion is the signature Phase 1 interaction:
