@@ -76,9 +76,9 @@ consistent across every screen and changes propagate from one place.
   included. Built from menu-row parts: `min-height: var(--tap-target)`,
   `padding: var(--space-xs) var(--space-sm)`, `--color-bg` behind it.
   States: OFF in `--color-green-dim`, ON in `--color-green`, and the same
-  inverted hover/focus as `.menu-item`. `body` carries
-  `padding-top: var(--tap-target)` so the toggle never covers the boot
-  log or header at 375px. Starts OFF on every visit; nothing is stored.
+  inverted hover/focus as `.menu-item`. At ≤600px `body`
+  carries `padding-top: var(--tap-target)` so the toggle never covers the
+  boot log or header; wider layouts are unchanged (measured: the first boot line reaches under the toggle below about 590px). Starts OFF on every visit; nothing is stored.
   Clicking it and pressing Enter on it are exempt from boot skipping.
   No new tokens.
 - **Vault Boy (`.vault-boy-anim`)** — a traced SVG driven entirely from CSS in
