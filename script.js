@@ -348,6 +348,7 @@ speakerToggle.addEventListener("click", () => {
   speakerOn = !speakerOn;
   speakerToggle.setAttribute("aria-pressed", String(speakerOn));
   speakerToggle.textContent = speakerOn ? "[ SPEAKER: ON ]" : "[ SPEAKER: OFF ]";
+  updateAudioRelayLine();
   playClick();
 });
 
@@ -362,12 +363,43 @@ speakerToggle.addEventListener("click", () => {
 // read from the DOM below, so the real content exists in exactly one
 // place. The empty string is a genuine blank line in the log — the typing
 // engine pauses on it instead of skipping it.
+// The audio status line is the one boot line whose text depends on the
+// visitor: it reports the speaker's state as it is at the moment it
+// types, and flips if the toggle is pressed while it's on screen. It
+// sits in BOOT_LINES as a marker; its real text comes from
+// audioRelayText().
+const AUDIO_RELAY_LINE_MARKER = "AUDIO_RELAY";
+
+function audioRelayText() {
+  return "AUDIO RELAY ....... " + (speakerOn ? "ENGAGED" : "STANDBY");
+}
+
+// The element the audio line was typed into, or null before it exists
+// and after the boot log is cut away.
+let audioRelayElement = null;
+
+// Called by the speaker toggle. If the audio line is still typing, the
+// new text replaces the run's target (both words are seven characters,
+// so the line finishes cleanly); if it's already printed, it flips in
+// place.
+function updateAudioRelayLine() {
+  if (!audioRelayElement || !audioRelayElement.isConnected) {
+    return;
+  }
+  if (activeRun && activeRun.element === audioRelayElement) {
+    activeRun.text = audioRelayText();
+    return;
+  }
+  audioRelayElement.textContent = audioRelayText();
+}
+
 const BOOT_LINES = [
   "ROBCO TERMLINK PROTOCOL v2.0",
   "INITIALIZING TERMINAL...",
   "",
   "STACK CHECK: HTML / CSS / JAVASCRIPT — NO FRAMEWORKS DETECTED",
   "HOST LINK: GITHUB PAGES NETWORK ... ESTABLISHED",
+  AUDIO_RELAY_LINE_MARKER,
 ];
 
 // The boot plays out in six phases, modeled on real Pip-Boy hardware
@@ -414,7 +446,12 @@ function runBootSequence() {
     }
     const element = document.createElement("p");
     preamble.appendChild(element);
-    typeText(element, BOOT_LINES[index], BOOT_TYPE_SPEED_MS, () => typeLogLine(index + 1));
+    let text = BOOT_LINES[index];
+    if (text === AUDIO_RELAY_LINE_MARKER) {
+      text = audioRelayText();
+      audioRelayElement = element;
+    }
+    typeText(element, text, BOOT_TYPE_SPEED_MS, () => typeLogLine(index + 1));
   }
 
   // Phases 2 through 4 — the blinking cursor reuses the same .cursor
