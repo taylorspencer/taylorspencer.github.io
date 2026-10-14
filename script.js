@@ -98,9 +98,14 @@ function typeText(element, text, speedMs = TYPE_SPEED_MS, onComplete) {
   }
 
   // The animation itself: one character appended per tick.
+  // The run object is created before the timer so the timer reads its
+  // text through it: if the text changes mid-type (the AUDIO RELAY line
+  // flipping when the speaker is toggled), the rest of the line types
+  // the new text instead of finishing the old one.
+  const run = { element, text, onComplete, stop: null };
   let printed = 0;
   const timerId = setInterval(() => {
-    element.textContent += text.charAt(printed);
+    element.textContent += run.text.charAt(printed);
     printed += 1;
 
     // Announce each printed character. bubbles: true lets the event climb
@@ -111,17 +116,13 @@ function typeText(element, text, speedMs = TYPE_SPEED_MS, onComplete) {
     // produces a burst of ticks.
     element.dispatchEvent(new CustomEvent("charprinted", { bubbles: true }));
 
-    if (printed >= text.length) {
+    if (printed >= run.text.length) {
       finishActiveRun();
     }
   }, speedMs);
 
-  activeRun = {
-    element,
-    text,
-    onComplete,
-    stop: () => clearInterval(timerId),
-  };
+  run.stop = () => clearInterval(timerId);
+  activeRun = run;
 }
 
 // Hold the stage for `ms` with nothing typing, then move on. Registered
@@ -387,7 +388,12 @@ function updateAudioRelayLine() {
     return;
   }
   if (activeRun && activeRun.element === audioRelayElement) {
-    activeRun.text = audioRelayText();
+    // Mid-type: rewrite what's already on screen to the new text's
+    // prefix, and the rest types from the new text. Both status words
+    // are seven characters, so the lengths always match.
+    const newText = audioRelayText();
+    audioRelayElement.textContent = newText.slice(0, audioRelayElement.textContent.length);
+    activeRun.text = newText;
     return;
   }
   audioRelayElement.textContent = audioRelayText();
