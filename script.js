@@ -184,13 +184,23 @@ function cancelActiveRun() {
 // While `skipping` is true, every typeText call completes immediately —
 // so finishing the current run cascades through the whole remaining
 // sequence: boot log, header, section text, whatever was queued up.
+//
+// Skipping the boot (click, Enter or Escape) plays exactly one click, the
+// same one a menu selection makes, so the skip is felt, not just seen.
+// The boot is running while its skip hint is showing. playClick() stays
+// silent when the speaker is off, and the skip itself prints silently,
+// so this is the only sound a skip ever makes.
 function skipActiveSequence() {
   if (!activeRun) {
     return;
   }
+  const skippingBoot = !document.querySelector(".boot-skip-hint").hidden;
   skipping = true;
   finishActiveRun();
   skipping = false;
+  if (skippingBoot) {
+    playClick();
+  }
 }
 
 // Click anywhere to skip. One listener on the document covers every typing
