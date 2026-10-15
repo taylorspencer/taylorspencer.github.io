@@ -10,7 +10,7 @@ Fallout-series RobCo TERMLINK terminal. Live at
 | --- | --- |
 | `index.html` | All markup — every screen is a `<section>`, shown/hidden by JS |
 | `style.css` | The entire visual identity; all colors/spacing/timing are CSS custom properties in `:root` |
-| `script.js` | Navigation only: one section-switching function, one wire-up loop |
+| `script.js` | Typing engine, boot sequence, screen navigation, and the optional audio module |
 
 No build tools, no frameworks, no external JS. The only external request is
 the Google Fonts load for Share Tech Mono (the closest available match to
@@ -27,6 +27,36 @@ Monofonto, the face the in-game FO3/FNV terminals use).
 4. **Interactivity** — whitelisted typeable commands, contact input,
    optional sound (off by default)
 5. **Custom domain + real contact form destination**
+
+## Audio (optional, off by default)
+
+A speaker-icon toggle (waves when on, an X when off; `aria-label`
+"Speaker" with `aria-pressed`) sits at the top-right of the page. It
+scrolls with the page instead of staying pinned, so it never covers text. Sound is **off on every visit**
+and resets on refresh: nothing is saved in cookies or storage, and no
+`AudioContext` exists until the visitor presses the toggle (browsers
+require that gesture anyway).
+
+- **`playTick(character)`** runs for every printed character via one
+  `document` listener on the typing engine's bubbling `charprinted`
+  event. It skips whitespace, then ticks on a random 50–70% of characters
+  (`TICK_CHANCE_MIN` / `TICK_CHANCE_MAX`), so the ticks keep pace with the
+  text at both the slower boot speed and the faster home-screen speed.
+  Pitch, volume and length vary per tick (`*_JITTER` constants), so the
+  pattern never repeats. Skips and
+  reduced-motion print instantly and never fire ticks.
+- **`playClick()`** runs on menu selections and on the toggle itself.
+- **Swap point / recorded sounds:** both functions play a recorded sample
+  when one is loaded and otherwise synthesize a stand-in. Recordings are
+  listed in `SAMPLE_TICK_FILES` / `SAMPLE_CLICK_FILES` in `script.js` and
+  live in `/audio` on this site. Nothing is fetched until the speaker is
+  first turned on; each play picks a random variant at a slightly random
+  `playbackRate`. A file that fails to load is skipped, and with no files
+  loaded the synthesized sounds play, so removing the recordings means
+  emptying those lists (reverting the commit that added the files).
+  Today both lists are empty: the site plays only synthesized sounds.
+- The boot log's `AUDIO RELAY ....... STANDBY` line reads `ENGAGED` when
+  the speaker is on, and flips if toggled while it's on screen.
 
 ## One-time manual setup
 

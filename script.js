@@ -98,27 +98,31 @@ function typeText(element, text, speedMs = TYPE_SPEED_MS, onComplete) {
   }
 
   // The animation itself: one character appended per tick.
+  // The run object is created before the timer so the timer reads its
+  // text through it: if the text changes mid-type (the AUDIO RELAY line
+  // flipping when the speaker is toggled), the rest of the line types
+  // the new text instead of finishing the old one.
+  const run = { element, text, onComplete, stop: null };
   let printed = 0;
   const timerId = setInterval(() => {
-    element.textContent += text.charAt(printed);
+    element.textContent += run.text.charAt(printed);
     printed += 1;
 
-    // Announce each printed character on the element. Nothing listens yet —
-    // this is the hook a future sound pass will attach to, added now so
-    // that feature never needs to reopen this function.
-    element.dispatchEvent(new CustomEvent("charprinted"));
+    // Announce each printed character. bubbles: true lets the event climb
+    // from this element up to `document`, so the audio module below hears
+    // every character on the page with one listener instead of attaching
+    // one to each line. Only this animated path fires it — the instant
+    // path (skip, reduced motion) prints silently, so a skip never
+    // produces a burst of ticks.
+    element.dispatchEvent(new CustomEvent("charprinted", { bubbles: true }));
 
-    if (printed >= text.length) {
+    if (printed >= run.text.length) {
       finishActiveRun();
     }
   }, speedMs);
 
-  activeRun = {
-    element,
-    text,
-    onComplete,
-    stop: () => clearInterval(timerId),
-  };
+  run.stop = () => clearInterval(timerId);
+  activeRun = run;
 }
 
 // Hold the stage for `ms` with nothing typing, then move on. Registered
@@ -180,13 +184,23 @@ function cancelActiveRun() {
 // While `skipping` is true, every typeText call completes immediately —
 // so finishing the current run cascades through the whole remaining
 // sequence: boot log, header, section text, whatever was queued up.
+//
+// Skipping the boot (click, Enter or Escape) plays exactly one click, the
+// same one a menu selection makes, so the skip is felt, not just seen.
+// The boot is running while its skip hint is showing. playClick() stays
+// silent when the speaker is off, and the skip itself prints silently,
+// so this is the only sound a skip ever makes.
 function skipActiveSequence() {
   if (!activeRun) {
     return;
   }
+  const skippingBoot = !document.querySelector(".boot-skip-hint").hidden;
   skipping = true;
   finishActiveRun();
   skipping = false;
+  if (skippingBoot) {
+    playClick();
+  }
 }
 
 // Click anywhere to skip. One listener on the document covers every typing
@@ -196,7 +210,263 @@ function skipActiveSequence() {
 // finishes the text already on screen, THEN navigates. In the default
 // bubble phase the order flips, and a menu click would instantly finish
 // the very text it had just started typing.
-document.addEventListener("click", skipActiveSequence, true);
+//
+// One exemption: the speaker toggle. Turning sound on mid-boot is the
+// whole point of having it visible during boot, so a press on it must
+// not also skip the boot it wants to hear.
+document.addEventListener(
+  "click",
+  (event) => {
+    if (event.target.closest(".speaker-toggle")) {
+      return;
+    }
+    skipActiveSequence();
+  },
+  true
+);
+
+/* ------------------------------------------------------------
+   AUDIO
+   Optional sound: typing ticks and menu clicks. Off on every
+   visit, and silent until the visitor presses the speaker
+   toggle. Browsers refuse to play sound before a user gesture,
+   and this site remembers nothing between visits, so "off until
+   pressed" is both the polite default and the only reliable one.
+
+   THE SWAP POINT: every sound is made inside playTick() and
+   playClick(). Each plays a recorded sample from /audio when
+   one is loaded and falls back to a synthesized sound when not.
+   Nothing that calls them needs to know which it got.
+   ------------------------------------------------------------ */
+
+// Sound knobs, named like the typing knobs above. The tick numbers come
+// from measuring a real Pip-Boy boot recording: a short noise click
+// peaking near 3.4 kHz, sounding on roughly every one or two characters.
+// (Tuned down to 2.4 kHz after Taylor heard it on a phone: too high.)
+//
+// Ticks follow the text: each printed character rolls the dice and
+// ticks with a chance between TICK_CHANCE_MIN and TICK_CHANCE_MAX (the
+// chance itself is re-drawn every character). Slow boot text ticks
+// slowly, fast home-screen text ticks quickly, and because every roll
+// is fresh, the rhythm never repeats. Pitch, volume and length all
+// wobble per tick for the same reason: no two ticks are identical.
+const TICK_CHANCE_MIN = 0.5;
+const TICK_CHANCE_MAX = 0.7;
+const TICK_LENGTH_S = 0.015;   // one tick: a 15 ms burst of noise
+const TICK_PITCH_HZ = 2400;    // centre of the tick's narrow band
+const TICK_PITCH_JITTER_HZ = 200; // per-tick wobble so it never sounds looped
+const TICK_VOLUME = 0.25;
+const TICK_VOLUME_JITTER = 0.2;      // each tick is 80–120% of TICK_VOLUME
+const TICK_LENGTH_JITTER = 0.3;      // each tick is 70–130% of TICK_LENGTH_S
+const CLICK_LENGTH_S = 0.04;   // the select chirp: a 40 ms falling square
+const CLICK_START_HZ = 700;
+const CLICK_END_HZ = 450;
+const CLICK_VOLUME = 0.12;
+
+// The one AudioContext (the browser's sound engine), or null until the
+// toggle is first pressed. Created lazily on purpose: making one at page
+// load would start the engine for visitors who never want sound.
+let audioContext = null;
+
+// The single source of truth for "should anything make noise".
+let speakerOn = false;
+
+// A reusable buffer of white noise, built once on first use. Every tick
+// plays a slice of it through a filter rather than generating fresh noise.
+let noiseBuffer = null;
+
+/* ---- Recorded sounds (optional, with automatic fallback) ----
+   The real terminal sounds live as small files in /audio, served from
+   this site's own address. They are listed here, and ONLY here: an empty
+   list means "no recordings", so nothing is fetched and the synthesized
+   sounds below play exactly as before. Removing the files later means
+   emptying these lists again (reverting the commit that filled them).
+
+   Nothing is downloaded until the visitor turns the speaker on, so a
+   visitor who never wants sound never pays for the files. If any file
+   fails to load or decode it is simply left out; if none load, the
+   synthesized sounds keep playing. Either way, no visitor ever hears
+   silence because a file went missing. */
+const SAMPLE_TICK_FILES = [  // several short variants, picked at random
+  '/audio/ui_hacking_charsingle_01.wav',
+  '/audio/ui_hacking_charsingle_02.wav',
+  '/audio/ui_hacking_charsingle_03.wav',
+  '/audio/ui_hacking_charsingle_04.wav',
+  '/audio/ui_hacking_charsingle_05.wav',
+  '/audio/ui_hacking_charsingle_06.wav',
+];
+const SAMPLE_CLICK_FILES = [ // menu / enter clicks, picked at random
+  '/audio/ui_hacking_charenter_01.wav',
+  '/audio/ui_hacking_charenter_02.wav',
+  '/audio/ui_hacking_charenter_03.wav',
+];
+const SAMPLE_RATE_JITTER = 0.06; // each sample plays at 94–106% speed
+const SAMPLE_VOLUME = 0.5;
+
+// Decoded recordings, filled in by loadSamples(). Empty means fallback.
+const tickSamples = [];
+const clickSamples = [];
+
+// The one load attempt, or null until the speaker is first turned on.
+let samplesRequested = false;
+
+// Fetch and decode every listed file into `into`. Each file stands
+// alone: one bad file never stops the others, and a failure is quietly
+// ignored because the synthesized sound is always there to cover it.
+function loadSampleList(paths, into) {
+  for (const path of paths) {
+    fetch(path)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("missing " + path);
+        }
+        return response.arrayBuffer();
+      })
+      .then((bytes) => audioContext.decodeAudioData(bytes))
+      .then((buffer) => into.push(buffer))
+      .catch(() => {
+        // Fallback: this file just isn't used.
+      });
+  }
+}
+
+// Called from the toggle's click the first time the speaker turns on.
+function loadSamples() {
+  if (samplesRequested) {
+    return;
+  }
+  samplesRequested = true;
+  loadSampleList(SAMPLE_TICK_FILES, tickSamples);
+  loadSampleList(SAMPLE_CLICK_FILES, clickSamples);
+}
+
+// Play one recording picked at random from `samples`, slightly faster or
+// slower each time (which also nudges its pitch), at a varied volume.
+// Returns false when there's nothing loaded, so the caller can fall back
+// to synthesis.
+function playRandomSample(samples, volume) {
+  if (samples.length === 0) {
+    return false;
+  }
+  const source = audioContext.createBufferSource();
+  source.buffer = samples[Math.floor(Math.random() * samples.length)];
+  source.playbackRate.value = randomBetween(1 - SAMPLE_RATE_JITTER, 1 + SAMPLE_RATE_JITTER);
+  const gain = audioContext.createGain();
+  gain.gain.value = volume;
+  source.connect(gain).connect(audioContext.destination);
+  source.start();
+  return true;
+}
+
+// Shape a sound's volume: a near-instant rise, then a quick fade to
+// silence. Without the fade every sound would end in an audible pop.
+function envelope(gainNode, startTime, peak, lengthS) {
+  gainNode.gain.setValueAtTime(0.0001, startTime);
+  gainNode.gain.exponentialRampToValueAtTime(peak, startTime + 0.002);
+  gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + lengthS);
+}
+
+// A random number between `low` and `high`. Every source of variation in
+// the ticks goes through here.
+function randomBetween(low, high) {
+  return low + Math.random() * (high - low);
+}
+
+// One typing tick. Called for every printed character; whitespace and a
+// fresh dice roll decide whether this one actually sounds.
+function playTick(character) {
+  if (!speakerOn || !audioContext) {
+    return;
+  }
+  if (character && character.trim() === "") {
+    return; // a space isn't a keystroke on a terminal printer
+  }
+  if (Math.random() >= randomBetween(TICK_CHANCE_MIN, TICK_CHANCE_MAX)) {
+    return; // this character prints silently
+  }
+  // Recorded tick if we have one; otherwise the synthesized stand-in.
+  if (playRandomSample(tickSamples, SAMPLE_VOLUME * randomBetween(1 - TICK_VOLUME_JITTER, 1 + TICK_VOLUME_JITTER))) {
+    return;
+  }
+  const now = audioContext.currentTime;
+  const lengthS = TICK_LENGTH_S * randomBetween(1 - TICK_LENGTH_JITTER, 1 + TICK_LENGTH_JITTER);
+
+  // --- synthesized fallback ---
+  if (!noiseBuffer) {
+    // Long enough for the longest tick the length jitter can ask for.
+    const length = Math.ceil(audioContext.sampleRate * TICK_LENGTH_S * (1 + TICK_LENGTH_JITTER));
+    noiseBuffer = audioContext.createBuffer(1, length, audioContext.sampleRate);
+    const samples = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < length; i += 1) {
+      samples[i] = Math.random() * 2 - 1;
+    }
+  }
+  const source = audioContext.createBufferSource();
+  source.buffer = noiseBuffer;
+  const band = audioContext.createBiquadFilter();
+  band.type = "bandpass";
+  band.frequency.value = TICK_PITCH_HZ + randomBetween(-1, 1) * TICK_PITCH_JITTER_HZ;
+  band.Q.value = 4;
+  const gain = audioContext.createGain();
+  const volume = TICK_VOLUME * randomBetween(1 - TICK_VOLUME_JITTER, 1 + TICK_VOLUME_JITTER);
+  envelope(gain, now, volume, lengthS);
+  source.connect(band).connect(gain).connect(audioContext.destination);
+  source.start(now);
+  source.stop(now + lengthS);
+}
+
+// One UI click: menu selections and the speaker toggle itself.
+function playClick() {
+  if (!speakerOn || !audioContext) {
+    return;
+  }
+  if (playRandomSample(clickSamples, SAMPLE_VOLUME)) {
+    return;
+  }
+  // --- synthesized fallback ---
+  const now = audioContext.currentTime;
+  const tone = audioContext.createOscillator();
+  tone.type = "square";
+  tone.frequency.setValueAtTime(CLICK_START_HZ, now);
+  tone.frequency.exponentialRampToValueAtTime(CLICK_END_HZ, now + CLICK_LENGTH_S);
+  const gain = audioContext.createGain();
+  envelope(gain, now, CLICK_VOLUME, CLICK_LENGTH_S);
+  tone.connect(gain).connect(audioContext.destination);
+  tone.start(now);
+  tone.stop(now + CLICK_LENGTH_S);
+}
+
+// Every printed character, from anywhere on the page, arrives here
+// (the typing engine's event bubbles up to document). The character is
+// the last one now on screen in the element that printed it.
+document.addEventListener("charprinted", (event) => {
+  const text = event.target.textContent;
+  playTick(text.charAt(text.length - 1));
+});
+
+// The toggle. Its click is the user gesture browsers require before
+// sound: the AudioContext is born here, on the first press, and never
+// earlier. Each press flips the state, updates aria-pressed, keeps the
+// boot log's AUDIO RELAY line honest, and (when turning on) clicks, so
+// the visitor hears that it worked. The icon needs no code: CSS swaps
+// waves for the X from aria-pressed alone.
+const speakerToggle = document.querySelector(".speaker-toggle");
+speakerToggle.hidden = false;
+speakerToggle.addEventListener("click", () => {
+  if (!audioContext) {
+    audioContext = new AudioContext();
+  }
+  // Mobile browsers can start (or later park) the engine suspended;
+  // resuming inside the gesture is what makes iOS Safari actually play.
+  audioContext.resume();
+  speakerOn = !speakerOn;
+  if (speakerOn) {
+    loadSamples(); // first time only; never before the speaker is on
+  }
+  speakerToggle.setAttribute("aria-pressed", String(speakerOn));
+  updateAudioRelayLine();
+  playClick();
+});
 
 /* ------------------------------------------------------------
    BOOT SEQUENCE
@@ -209,12 +479,48 @@ document.addEventListener("click", skipActiveSequence, true);
 // read from the DOM below, so the real content exists in exactly one
 // place. The empty string is a genuine blank line in the log — the typing
 // engine pauses on it instead of skipping it.
+// The audio status line is the one boot line whose text depends on the
+// visitor: it reports the speaker's state as it is at the moment it
+// types, and flips if the toggle is pressed while it's on screen. It
+// sits in BOOT_LINES as a marker; its real text comes from
+// audioRelayText().
+const AUDIO_RELAY_LINE_MARKER = "AUDIO_RELAY";
+
+function audioRelayText() {
+  return "AUDIO RELAY ....... " + (speakerOn ? "ENGAGED" : "STANDBY");
+}
+
+// The element the audio line was typed into, or null before it exists
+// and after the boot log is cut away.
+let audioRelayElement = null;
+
+// Called by the speaker toggle. If the audio line is still typing, the
+// new text replaces the run's target (both words are seven characters,
+// so the line finishes cleanly); if it's already printed, it flips in
+// place.
+function updateAudioRelayLine() {
+  if (!audioRelayElement || !audioRelayElement.isConnected) {
+    return;
+  }
+  if (activeRun && activeRun.element === audioRelayElement) {
+    // Mid-type: rewrite what's already on screen to the new text's
+    // prefix, and the rest types from the new text. Both status words
+    // are seven characters, so the lengths always match.
+    const newText = audioRelayText();
+    audioRelayElement.textContent = newText.slice(0, audioRelayElement.textContent.length);
+    activeRun.text = newText;
+    return;
+  }
+  audioRelayElement.textContent = audioRelayText();
+}
+
 const BOOT_LINES = [
   "ROBCO TERMLINK PROTOCOL v2.0",
   "INITIALIZING TERMINAL...",
   "",
   "STACK CHECK: HTML / CSS / JAVASCRIPT — NO FRAMEWORKS DETECTED",
   "HOST LINK: GITHUB PAGES NETWORK ... ESTABLISHED",
+  AUDIO_RELAY_LINE_MARKER,
 ];
 
 // The boot plays out in six phases, modeled on real Pip-Boy hardware
@@ -261,7 +567,12 @@ function runBootSequence() {
     }
     const element = document.createElement("p");
     preamble.appendChild(element);
-    typeText(element, BOOT_LINES[index], BOOT_TYPE_SPEED_MS, () => typeLogLine(index + 1));
+    let text = BOOT_LINES[index];
+    if (text === AUDIO_RELAY_LINE_MARKER) {
+      text = audioRelayText();
+      audioRelayElement = element;
+    }
+    typeText(element, text, BOOT_TYPE_SPEED_MS, () => typeLogLine(index + 1));
   }
 
   // Phases 2 through 4 — the blinking cursor reuses the same .cursor
@@ -389,7 +700,10 @@ function showScreen(targetId) {
 // data-target attribute, so adding a menu entry later means touching
 // only the HTML — no new JavaScript.
 for (const button of document.querySelectorAll("button[data-target]")) {
-  button.addEventListener("click", () => showScreen(button.dataset.target));
+  button.addEventListener("click", () => {
+    playClick();
+    showScreen(button.dataset.target);
+  });
 }
 
 // Escape mirrors the in-game "back out of the entry" key, in two layers.
@@ -405,6 +719,11 @@ document.addEventListener("keydown", (event) => {
   // does exactly one thing: fast-forward whatever is typing. Navigation
   // stays Escape's job.
   if (event.key === "Enter") {
+    // Enter on the focused speaker toggle means "press the toggle", not
+    // "skip" — the button's own click does the rest.
+    if (document.activeElement === speakerToggle) {
+      return;
+    }
     skipActiveSequence();
     return;
   }
