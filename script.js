@@ -250,8 +250,8 @@ document.addEventListener(
 // share of characters; slower home and menu text (TYPE_SPEED_MS) on a
 // larger one. Pitch, volume and length all wobble per tick for the same
 // reason: no two ticks are identical.
-const BOOT_TICK_CHANCE_MIN = 0.28;
-const BOOT_TICK_CHANCE_MAX = 0.35;
+const BOOT_TICK_CHANCE_MIN = 0.30;
+const BOOT_TICK_CHANCE_MAX = 0.38;
 const TICK_CHANCE_MIN = 0.46;
 const TICK_CHANCE_MAX = 0.64;
 const TICK_VOLUME_JITTER = 0.2;      // each tick is 80–120% of SAMPLE_VOLUME
