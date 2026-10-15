@@ -277,8 +277,19 @@ let noiseBuffer = null;
    fails to load or decode it is simply left out; if none load, the
    synthesized sounds keep playing. Either way, no visitor ever hears
    silence because a file went missing. */
-const SAMPLE_TICK_FILES = [];  // several short variants, picked at random
-const SAMPLE_CLICK_FILES = []; // menu / enter clicks, picked at random
+const SAMPLE_TICK_FILES = [  // several short variants, picked at random
+  '/audio/ui_hacking_charsingle_01.wav',
+  '/audio/ui_hacking_charsingle_02.wav',
+  '/audio/ui_hacking_charsingle_03.wav',
+  '/audio/ui_hacking_charsingle_04.wav',
+  '/audio/ui_hacking_charsingle_05.wav',
+  '/audio/ui_hacking_charsingle_06.wav',
+];
+const SAMPLE_CLICK_FILES = [ // menu / enter clicks, picked at random
+  '/audio/ui_hacking_charenter_01.wav',
+  '/audio/ui_hacking_charenter_02.wav',
+  '/audio/ui_hacking_charenter_03.wav',
+];
 const SAMPLE_RATE_JITTER = 0.06; // each sample plays at 94–106% speed
 const SAMPLE_VOLUME = 0.5;
 
