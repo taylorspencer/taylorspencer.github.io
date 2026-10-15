@@ -235,14 +235,12 @@ document.addEventListener(
 
    THE SWAP POINT: every sound is made inside playTick() and
    playClick(). Each plays a recorded sample from /audio when
-   one is loaded and falls back to a synthesized sound when not.
+   one is loaded and stays silent when not (no synthesized backup).
    Nothing that calls them needs to know which it got.
    ------------------------------------------------------------ */
 
-// Sound knobs, named like the typing knobs above. The tick numbers come
-// from measuring a real Pip-Boy boot recording: a short noise click
-// peaking near 3.4 kHz, sounding on roughly every one or two characters.
-// (Tuned down to 2.4 kHz after Taylor heard it on a phone: too high.)
+// Sound knobs, named like the typing knobs above. Every sound is a
+// recorded Fallout file from /audio; nothing is synthesized.
 //
 // Ticks follow the text: each printed character rolls the dice and
 // ticks with a chance drawn fresh from a range (so the rhythm never
@@ -256,16 +254,7 @@ const BOOT_TICK_CHANCE_MIN = 0.26;
 const BOOT_TICK_CHANCE_MAX = 0.34;
 const TICK_CHANCE_MIN = 0.40;
 const TICK_CHANCE_MAX = 0.56;
-const TICK_LENGTH_S = 0.015;   // one tick: a 15 ms burst of noise
-const TICK_PITCH_HZ = 2400;    // centre of the tick's narrow band
-const TICK_PITCH_JITTER_HZ = 200; // per-tick wobble so it never sounds looped
-const TICK_VOLUME = 0.25;
-const TICK_VOLUME_JITTER = 0.2;      // each tick is 80–120% of TICK_VOLUME
-const TICK_LENGTH_JITTER = 0.3;      // each tick is 70–130% of TICK_LENGTH_S
-const CLICK_LENGTH_S = 0.04;   // the select chirp: a 40 ms falling square
-const CLICK_START_HZ = 700;
-const CLICK_END_HZ = 450;
-const CLICK_VOLUME = 0.12;
+const TICK_VOLUME_JITTER = 0.2;      // each tick is 80–120% of SAMPLE_VOLUME
 
 // The one AudioContext (the browser's sound engine), or null until the
 // toggle is first pressed. Created lazily on purpose: making one at page
@@ -275,39 +264,35 @@ let audioContext = null;
 // The single source of truth for "should anything make noise".
 let speakerOn = false;
 
-// A reusable buffer of white noise, built once on first use. Every tick
-// plays a slice of it through a filter rather than generating fresh noise.
-let noiseBuffer = null;
-
 /* ---- Recorded sounds (optional, with automatic fallback) ----
    The real terminal sounds live as small files in /audio, served from
    this site's own address. They are listed here, and ONLY here: an empty
-   list means "no recordings", so nothing is fetched and the synthesized
-   sounds below play exactly as before. Removing the files later means
-   emptying these lists again (reverting the commit that filled them).
+   list means "no recordings", so nothing is fetched and the site is
+   silent. Paths are relative ("audio/...") so they resolve under any
+   folder the site is served from, including the staging copy.
 
    Nothing is downloaded until the visitor turns the speaker on, so a
    visitor who never wants sound never pays for the files. If any file
    fails to load or decode it is simply left out; if none load, the
-   synthesized sounds keep playing. Either way, no visitor ever hears
-   silence because a file went missing. */
+   site stays silent. There is deliberately no synthesized backup:
+   only the real recordings ever play (Taylor, Oct 14). */
 const SAMPLE_TICK_FILES = [  // several short variants, picked at random
-  '/audio/ui_hacking_charsingle_01.wav',
-  '/audio/ui_hacking_charsingle_02.wav',
-  '/audio/ui_hacking_charsingle_03.wav',
-  '/audio/ui_hacking_charsingle_04.wav',
-  '/audio/ui_hacking_charsingle_05.wav',
-  '/audio/ui_hacking_charsingle_06.wav',
+  'audio/ui_hacking_charsingle_01.wav',
+  'audio/ui_hacking_charsingle_02.wav',
+  'audio/ui_hacking_charsingle_03.wav',
+  'audio/ui_hacking_charsingle_04.wav',
+  'audio/ui_hacking_charsingle_05.wav',
+  'audio/ui_hacking_charsingle_06.wav',
 ];
 const SAMPLE_CLICK_FILES = [ // menu / enter clicks, picked at random
-  '/audio/ui_hacking_charenter_01.wav',
-  '/audio/ui_hacking_charenter_02.wav',
-  '/audio/ui_hacking_charenter_03.wav',
+  'audio/ui_hacking_charenter_01.wav',
+  'audio/ui_hacking_charenter_02.wav',
+  'audio/ui_hacking_charenter_03.wav',
 ];
 const SAMPLE_RATE_JITTER = 0.06; // each sample plays at 94–106% speed
 const SAMPLE_VOLUME = 0.5;
 
-// Decoded recordings, filled in by loadSamples(). Empty means fallback.
+// Decoded recordings, filled in by loadSamples(). Empty means silent.
 const tickSamples = [];
 const clickSamples = [];
 
@@ -316,7 +301,7 @@ let samplesRequested = false;
 
 // Fetch and decode every listed file into `into`. Each file stands
 // alone: one bad file never stops the others, and a failure is quietly
-// ignored because the synthesized sound is always there to cover it.
+// ignored and that sound just stays silent.
 function loadSampleList(paths, into) {
   for (const path of paths) {
     fetch(path)
@@ -346,8 +331,7 @@ function loadSamples() {
 
 // Play one recording picked at random from `samples`, slightly faster or
 // slower each time (which also nudges its pitch), at a varied volume.
-// Returns false when there's nothing loaded, so the caller can fall back
-// to synthesis.
+// Does nothing when nothing is loaded.
 function playRandomSample(samples, volume) {
   if (samples.length === 0) {
     return false;
@@ -360,14 +344,6 @@ function playRandomSample(samples, volume) {
   source.connect(gain).connect(audioContext.destination);
   source.start();
   return true;
-}
-
-// Shape a sound's volume: a near-instant rise, then a quick fade to
-// silence. Without the fade every sound would end in an audible pop.
-function envelope(gainNode, startTime, peak, lengthS) {
-  gainNode.gain.setValueAtTime(0.0001, startTime);
-  gainNode.gain.exponentialRampToValueAtTime(peak, startTime + 0.002);
-  gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + lengthS);
 }
 
 // A random number between `low` and `high`. Every source of variation in
@@ -391,35 +367,8 @@ function playTick(character, speedMs) {
   if (Math.random() >= chance) {
     return; // this character prints silently
   }
-  // Recorded tick if we have one; otherwise the synthesized stand-in.
-  if (playRandomSample(tickSamples, SAMPLE_VOLUME * randomBetween(1 - TICK_VOLUME_JITTER, 1 + TICK_VOLUME_JITTER))) {
-    return;
-  }
-  const now = audioContext.currentTime;
-  const lengthS = TICK_LENGTH_S * randomBetween(1 - TICK_LENGTH_JITTER, 1 + TICK_LENGTH_JITTER);
-
-  // --- synthesized fallback ---
-  if (!noiseBuffer) {
-    // Long enough for the longest tick the length jitter can ask for.
-    const length = Math.ceil(audioContext.sampleRate * TICK_LENGTH_S * (1 + TICK_LENGTH_JITTER));
-    noiseBuffer = audioContext.createBuffer(1, length, audioContext.sampleRate);
-    const samples = noiseBuffer.getChannelData(0);
-    for (let i = 0; i < length; i += 1) {
-      samples[i] = Math.random() * 2 - 1;
-    }
-  }
-  const source = audioContext.createBufferSource();
-  source.buffer = noiseBuffer;
-  const band = audioContext.createBiquadFilter();
-  band.type = "bandpass";
-  band.frequency.value = TICK_PITCH_HZ + randomBetween(-1, 1) * TICK_PITCH_JITTER_HZ;
-  band.Q.value = 4;
-  const gain = audioContext.createGain();
-  const volume = TICK_VOLUME * randomBetween(1 - TICK_VOLUME_JITTER, 1 + TICK_VOLUME_JITTER);
-  envelope(gain, now, volume, lengthS);
-  source.connect(band).connect(gain).connect(audioContext.destination);
-  source.start(now);
-  source.stop(now + lengthS);
+  // Recorded tick; if none has loaded yet, this character is silent.
+  playRandomSample(tickSamples, SAMPLE_VOLUME * randomBetween(1 - TICK_VOLUME_JITTER, 1 + TICK_VOLUME_JITTER));
 }
 
 // One UI click: menu selections and the speaker toggle itself.
@@ -427,20 +376,7 @@ function playClick() {
   if (!speakerOn || !audioContext) {
     return;
   }
-  if (playRandomSample(clickSamples, SAMPLE_VOLUME)) {
-    return;
-  }
-  // --- synthesized fallback ---
-  const now = audioContext.currentTime;
-  const tone = audioContext.createOscillator();
-  tone.type = "square";
-  tone.frequency.setValueAtTime(CLICK_START_HZ, now);
-  tone.frequency.exponentialRampToValueAtTime(CLICK_END_HZ, now + CLICK_LENGTH_S);
-  const gain = audioContext.createGain();
-  envelope(gain, now, CLICK_VOLUME, CLICK_LENGTH_S);
-  tone.connect(gain).connect(audioContext.destination);
-  tone.start(now);
-  tone.stop(now + CLICK_LENGTH_S);
+  playRandomSample(clickSamples, SAMPLE_VOLUME); // silent if not loaded
 }
 
 // Every printed character, from anywhere on the page, arrives here

@@ -50,14 +50,12 @@ require that gesture anyway).
   plays a single `playClick()` instead.
 - **`playClick()`** runs on menu selections and on the toggle itself.
 - **Swap point / recorded sounds:** both functions play a recorded sample
-  when one is loaded and otherwise synthesize a stand-in. Recordings are
+  when one is loaded and are silent otherwise (no synthesized sounds). Recordings are
   listed in `SAMPLE_TICK_FILES` / `SAMPLE_CLICK_FILES` in `script.js` and
-  live in `/audio` on this site. Nothing is fetched until the speaker is
+  live in `audio/` on this site (relative paths). Nothing is fetched until the speaker is
   first turned on; each play picks a random variant at a slightly random
-  `playbackRate`. A file that fails to load is skipped, and with no files
-  loaded the synthesized sounds play, so removing the recordings means
-  emptying those lists (reverting the commit that added the files).
-  Today both lists are empty: the site plays only synthesized sounds.
+  `playbackRate`. A file that fails to load is skipped and that sound
+  stays silent.
 - The boot log's `AUDIO RELAY ....... STANDBY` line reads `ENGAGED` when
   the speaker is on, and flips if toggled while it's on screen.
 

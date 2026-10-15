@@ -131,10 +131,11 @@ Kept in a clearly separated section of `style.css` so the heavy CRT effects
   gap, so the rhythm never repeats. Tick files are trimmed to 30 ms so
   neighbouring ticks don't blur. Skipping the boot plays one select click.
 - **Sound files** (approved by Taylor, Oct 14, 2026; 200 KB total cap):
-  sound files live in `/audio`, load only after the
-  speaker is turned on, and come from the site's own address. The
-  synthesized sounds in `playTick()` / `playClick()` stay as the automatic
-  fallback whenever a file is missing or fails to load.
+  sound files live in `audio/` (always linked with relative paths so the
+  staging copy loads its own files), load only after the speaker is
+  turned on, and come from the site's own address. Only these recordings
+  ever play: there are no synthesized sounds, and a file that is missing
+  or not yet loaded is silent with no errors (Taylor, Oct 14, 2026).
 
 ---
 
