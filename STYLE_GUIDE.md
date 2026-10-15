@@ -124,8 +124,8 @@ Kept in a clearly separated section of `style.css` so the heavy CRT effects
   minimum gap, so ticks pace with whatever speed the text types at and
   never fall into a repeating pattern. Typing speeds are not tuned for
   sound; the slower boot text is intentional.
-- **Sound files** (proposed rule, pending Taylor's approval along with a
-  200 KB total cap): sound files live in `/audio`, load only after the
+- **Sound files** (approved by Taylor, Oct 14, 2026; 200 KB total cap):
+  sound files live in `/audio`, load only after the
   speaker is turned on, and come from the site's own address. The
   synthesized sounds in `playTick()` / `playClick()` stay as the automatic
   fallback whenever a file is missing or fails to load.
