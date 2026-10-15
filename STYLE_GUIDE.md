@@ -124,8 +124,8 @@ Kept in a clearly separated section of `style.css` so the heavy CRT effects
   log and the boot header type at 18 ms a character (`BOOT_TYPE_SPEED_MS`), home and menu text
   at 40 ms (`TYPE_SPEED_MS`). Ticks follow the text: one chance per printed
   non-space character, re-drawn every character, with a separate share for
-  each speed. Boot ticks on a random 30-39% (`BOOT_TICK_CHANCE_MIN` /
-  `BOOT_TICK_CHANCE_MAX`, about 15-17 ticks a second; raised ~15% on Taylor's Oct 15 call), home and menu text
+  each speed. Boot ticks on a random 28-35% (`BOOT_TICK_CHANCE_MIN` /
+  `BOOT_TICK_CHANCE_MAX`, about 16-17 ticks a second; raised ~15% on Taylor's Oct 15 call), home and menu text
   on a random 46-64% (`TICK_CHANCE_MIN` / `TICK_CHANCE_MAX`, about 13-14 a
   second). Per-tick pitch, volume and length jitter, and no fixed minimum
   gap, so the rhythm never repeats. Tick files are trimmed to 30 ms so

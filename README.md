@@ -40,7 +40,7 @@ require that gesture anyway).
 - **`playTick(character, speedMs)`** runs for every printed character via one
   `document` listener on the typing engine's bubbling `charprinted`
   event. It skips whitespace, then ticks on a random share of characters
-  that depends on the typing speed: 30–39% for the boot log and boot header at 18 ms a
+  that depends on the typing speed: 28–35% for the boot log and boot header at 18 ms a
   character (`BOOT_TICK_CHANCE_MIN` / `_MAX`) and 46–64% for home and menu
   text at 40 ms (`TICK_CHANCE_MIN` / `_MAX`), so both run at roughly the
   game's 13–16 ticks a second or a touch above (raised ~15%, Oct 15).
