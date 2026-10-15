@@ -108,7 +108,8 @@ Kept in a clearly separated section of `style.css` so the heavy CRT effects
   Keep opacity low — readability beats authenticity.
 - **Boot cut:** the finished boot log exits with a hard single-frame cut
   (no roll, no fade — a terminal clears its screen instantly), a beat of
-  bare glow, then the header types and the menu pops in. A possible
+  bare glow, then the header types at boot speed and the menu pops in.
+  The finished log holds for 600 ms (`BOOT_HOLD_MS`) before the cut. A possible
   screen-glow effect on the cut is an open Phase 3 question.
 - **Cursor blink:** `steps(1)` 1.1s — hard on/off, not a fade.
 - **Reduced motion:** `prefers-reduced-motion: reduce` stops the cursor.
@@ -120,7 +121,7 @@ Kept in a clearly separated section of `style.css` so the heavy CRT effects
 - **Off by default**, every visit; nothing is stored.
 - **Typing speeds and ticks** (Taylor's call, Oct 14, 2026: faster boot,
   slower menus, ticks paced to the game's ~13-16 ticks a second): the boot
-  log types at 18 ms a character (`BOOT_TYPE_SPEED_MS`), home and menu text
+  log and the boot header type at 18 ms a character (`BOOT_TYPE_SPEED_MS`), home and menu text
   at 40 ms (`TYPE_SPEED_MS`). Ticks follow the text: one chance per printed
   non-space character, re-drawn every character, with a separate share for
   each speed. Boot ticks on a random 26-34% (`BOOT_TICK_CHANCE_MIN` /

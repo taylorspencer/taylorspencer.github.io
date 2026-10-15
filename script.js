@@ -36,7 +36,7 @@ const BLANK_LINE_PAUSE_MS = 400;
 
 // How long the finished boot log pulses behind its blinking cursor —
 // about one full blink — before the screen cuts to blank.
-const BOOT_HOLD_MS = 1000;
+const BOOT_HOLD_MS = 600;
 
 // The beat of bare, empty glow between the log cutting away and the
 // header starting to type — on the real hardware the tube sits blank
@@ -537,7 +537,7 @@ const BOOT_LINES = [
 //   3. the cut: the log vanishes in a single frame — a terminal clears
 //      its screen instantly, it doesn't ease anything away
 //   4. the bare glow holds for a moment
-//   5. the header types onto the clean screen
+//   5. the header types onto the clean screen at boot speed
 //   6. the menu pops in all at once, timed to the final header
 //      character (menus are furniture to navigate, not content to
 //      read, so they never type)
@@ -612,7 +612,7 @@ function runBootSequence() {
       return;
     }
     const step = headerSteps[index];
-    typeText(step.element, step.text, TYPE_SPEED_MS, () => typeHeaderLine(index + 1));
+    typeText(step.element, step.text, BOOT_TYPE_SPEED_MS, () => typeHeaderLine(index + 1));
   }
 
   // The boot animation plays only on a genuine arrival. The browser
