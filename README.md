@@ -37,14 +37,17 @@ and resets on refresh: nothing is saved in cookies or storage, and no
 `AudioContext` exists until the visitor presses the toggle (browsers
 require that gesture anyway).
 
-- **`playTick(character)`** runs for every printed character via one
+- **`playTick(character, speedMs)`** runs for every printed character via one
   `document` listener on the typing engine's bubbling `charprinted`
-  event. It skips whitespace, then ticks on a random 50–70% of characters
-  (`TICK_CHANCE_MIN` / `TICK_CHANCE_MAX`), so the ticks keep pace with the
-  text at both the slower boot speed and the faster home-screen speed.
+  event. It skips whitespace, then ticks on a random share of characters
+  that depends on the typing speed: 26–34% for the boot log at 18 ms a
+  character (`BOOT_TICK_CHANCE_MIN` / `_MAX`) and 40–56% for home and menu
+  text at 40 ms (`TICK_CHANCE_MIN` / `_MAX`), so both run at roughly the
+  game's 13–16 ticks a second or a little under.
   Pitch, volume and length vary per tick (`*_JITTER` constants), so the
   pattern never repeats. Skips and
-  reduced-motion print instantly and never fire ticks.
+  reduced-motion print instantly and never fire ticks; skipping the boot
+  plays a single `playClick()` instead.
 - **`playClick()`** runs on menu selections and on the toggle itself.
 - **Swap point / recorded sounds:** both functions play a recorded sample
   when one is loaded and otherwise synthesize a stand-in. Recordings are

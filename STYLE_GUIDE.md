@@ -118,12 +118,17 @@ Kept in a clearly separated section of `style.css` so the heavy CRT effects
 ## Sound
 
 - **Off by default**, every visit; nothing is stored.
-- **Ticks follow the text:** one chance per printed non-space character,
-  ticking on a random 50–70% (`TICK_CHANCE_MIN` / `TICK_CHANCE_MAX` in
-  `script.js`), with per-tick pitch, volume and length jitter. No fixed
-  minimum gap, so ticks pace with whatever speed the text types at and
-  never fall into a repeating pattern. Typing speeds are not tuned for
-  sound; the slower boot text is intentional.
+- **Typing speeds and ticks** (Taylor's call, Oct 14, 2026: faster boot,
+  slower menus, ticks paced to the game's ~13-16 ticks a second): the boot
+  log types at 18 ms a character (`BOOT_TYPE_SPEED_MS`), home and menu text
+  at 40 ms (`TYPE_SPEED_MS`). Ticks follow the text: one chance per printed
+  non-space character, re-drawn every character, with a separate share for
+  each speed. Boot ticks on a random 26-34% (`BOOT_TICK_CHANCE_MIN` /
+  `BOOT_TICK_CHANCE_MAX`, about 13-15 ticks a second), home and menu text
+  on a random 40-56% (`TICK_CHANCE_MIN` / `TICK_CHANCE_MAX`, about 11-12 a
+  second). Per-tick pitch, volume and length jitter, and no fixed minimum
+  gap, so the rhythm never repeats. Tick files are trimmed to 30 ms so
+  neighbouring ticks don't blur. Skipping the boot plays one select click.
 - **Sound files** (approved by Taylor, Oct 14, 2026; 200 KB total cap):
   sound files live in `/audio`, load only after the
   speaker is turned on, and come from the site's own address. The

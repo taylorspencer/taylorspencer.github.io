@@ -21,13 +21,13 @@
 
 // Typing speed in milliseconds per character for section text and the
 // header — the things a visitor actually reads.
-const TYPE_SPEED_MS = 25;
+const TYPE_SPEED_MS = 40;
 
-// The boot log types slower than everything else: initialization should
-// feel like an old machine warming up, deliberate line by deliberate
-// line. Tuned against footage of a real Pip-Boy 3000 boot, whose log
-// runs at close to this cadence.
-const BOOT_TYPE_SPEED_MS = 28;
+// The boot log types faster than everything else, like the in-game boot
+// scroll, while home and menu text types slower so it reads like the
+// game's terminal. Both set by Taylor on Oct 14, 2026 against the game
+// clips; the tick shares in the AUDIO section are paced to these speeds.
+const BOOT_TYPE_SPEED_MS = 18;
 
 // How long a blank line holds the stage, in milliseconds. A blank line has
 // no characters to type, so without this it would flash past in zero time
@@ -114,7 +114,7 @@ function typeText(element, text, speedMs = TYPE_SPEED_MS, onComplete) {
     // one to each line. Only this animated path fires it — the instant
     // path (skip, reduced motion) prints silently, so a skip never
     // produces a burst of ticks.
-    element.dispatchEvent(new CustomEvent("charprinted", { bubbles: true }));
+    element.dispatchEvent(new CustomEvent("charprinted", { bubbles: true, detail: { speedMs } }));
 
     if (printed >= run.text.length) {
       finishActiveRun();
@@ -245,13 +245,17 @@ document.addEventListener(
 // (Tuned down to 2.4 kHz after Taylor heard it on a phone: too high.)
 //
 // Ticks follow the text: each printed character rolls the dice and
-// ticks with a chance between TICK_CHANCE_MIN and TICK_CHANCE_MAX (the
-// chance itself is re-drawn every character). Slow boot text ticks
-// slowly, fast home-screen text ticks quickly, and because every roll
-// is fresh, the rhythm never repeats. Pitch, volume and length all
-// wobble per tick for the same reason: no two ticks are identical.
-const TICK_CHANCE_MIN = 0.5;
-const TICK_CHANCE_MAX = 0.7;
+// ticks with a chance drawn fresh from a range (so the rhythm never
+// repeats). Each typing speed gets its own range, so both land near the
+// game's ~13-16 ticks a second (Taylor's Oct 14 call: faster boot,
+// slower menus). Fast boot text (BOOT_TYPE_SPEED_MS) ticks on a small
+// share of characters; slower home and menu text (TYPE_SPEED_MS) on a
+// larger one. Pitch, volume and length all wobble per tick for the same
+// reason: no two ticks are identical.
+const BOOT_TICK_CHANCE_MIN = 0.26;
+const BOOT_TICK_CHANCE_MAX = 0.34;
+const TICK_CHANCE_MIN = 0.40;
+const TICK_CHANCE_MAX = 0.56;
 const TICK_LENGTH_S = 0.015;   // one tick: a 15 ms burst of noise
 const TICK_PITCH_HZ = 2400;    // centre of the tick's narrow band
 const TICK_PITCH_JITTER_HZ = 200; // per-tick wobble so it never sounds looped
@@ -374,14 +378,17 @@ function randomBetween(low, high) {
 
 // One typing tick. Called for every printed character; whitespace and a
 // fresh dice roll decide whether this one actually sounds.
-function playTick(character) {
+function playTick(character, speedMs) {
   if (!speakerOn || !audioContext) {
     return;
   }
   if (character && character.trim() === "") {
     return; // a space isn't a keystroke on a terminal printer
   }
-  if (Math.random() >= randomBetween(TICK_CHANCE_MIN, TICK_CHANCE_MAX)) {
+  const chance = speedMs === BOOT_TYPE_SPEED_MS
+    ? randomBetween(BOOT_TICK_CHANCE_MIN, BOOT_TICK_CHANCE_MAX)
+    : randomBetween(TICK_CHANCE_MIN, TICK_CHANCE_MAX);
+  if (Math.random() >= chance) {
     return; // this character prints silently
   }
   // Recorded tick if we have one; otherwise the synthesized stand-in.
@@ -441,7 +448,7 @@ function playClick() {
 // the last one now on screen in the element that printed it.
 document.addEventListener("charprinted", (event) => {
   const text = event.target.textContent;
-  playTick(text.charAt(text.length - 1));
+  playTick(text.charAt(text.length - 1), event.detail && event.detail.speedMs);
 });
 
 // The toggle. Its click is the user gesture browsers require before
