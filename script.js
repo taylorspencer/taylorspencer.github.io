@@ -245,15 +245,15 @@ document.addEventListener(
 // Ticks follow the text: each printed character rolls the dice and
 // ticks with a chance drawn fresh from a range (so the rhythm never
 // repeats). Each typing speed gets its own range, so both land near the
-// game's ~13-16 ticks a second (Taylor's Oct 14 call: faster boot,
+// game's ~13-16 ticks a second, then ~15% faster (Taylor, Oct 14-15: faster boot,
 // slower menus). Fast boot text (BOOT_TYPE_SPEED_MS) ticks on a small
 // share of characters; slower home and menu text (TYPE_SPEED_MS) on a
 // larger one. Pitch, volume and length all wobble per tick for the same
 // reason: no two ticks are identical.
-const BOOT_TICK_CHANCE_MIN = 0.26;
-const BOOT_TICK_CHANCE_MAX = 0.34;
-const TICK_CHANCE_MIN = 0.40;
-const TICK_CHANCE_MAX = 0.56;
+const BOOT_TICK_CHANCE_MIN = 0.30;
+const BOOT_TICK_CHANCE_MAX = 0.39;
+const TICK_CHANCE_MIN = 0.46;
+const TICK_CHANCE_MAX = 0.64;
 const TICK_VOLUME_JITTER = 0.2;      // each tick is 80–120% of SAMPLE_VOLUME
 
 // The one AudioContext (the browser's sound engine), or null until the
